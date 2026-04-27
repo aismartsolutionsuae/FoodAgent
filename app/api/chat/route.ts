@@ -1,10 +1,44 @@
 import { convertToModelMessages, streamText, UIMessage } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
+import { waitUntil } from "@vercel/functions";
+
+import { extractContactForWebhook } from "@/lib/chat-contact-extraction";
+import {
+  getLastUserMessageId,
+  getLastUserTextFromMessages,
+} from "@/lib/chat-messages";
 import { MODEL_ID, SYSTEM_PROMPT } from "@/lib/chat-config";
+import { sendToWebhook } from "@/lib/webhook";
+
+/** Продлевает время на фон (вебхук + LLM) на Vercel вместе со стримингом. */
+export const maxDuration = 60;
 
 type ChatRequestBody = {
   messages?: UIMessage[];
 };
+
+async function runMakeWebhookPipeline(
+  openAiApiKey: string,
+  lastUserText: string,
+  lastUserId: string | undefined
+) {
+  const extracted = await extractContactForWebhook(
+    openAiApiKey,
+    lastUserText
+  );
+
+  if (!extracted.shouldNotify) {
+    return;
+  }
+
+  await sendToWebhook({
+    email: extracted.email,
+    name: extracted.name,
+    question: extracted.questionSummary,
+    telegram: extracted.telegram,
+    userMessageId: lastUserId ?? null,
+  });
+}
 
 export async function POST(request: Request) {
   try {
@@ -30,6 +64,25 @@ export async function POST(request: Request) {
 
     const modelMessages = await convertToModelMessages(body.messages);
     const openai = createOpenAI({ apiKey: openAiApiKey });
+
+    const lastUserText = getLastUserTextFromMessages(body.messages);
+    const lastUserId = getLastUserMessageId(body.messages);
+
+    if (lastUserText) {
+      const work = (async () => {
+        try {
+          await runMakeWebhookPipeline(
+            openAiApiKey,
+            lastUserText,
+            lastUserId
+          );
+        } catch (webhookError) {
+          console.error("Chat webhook pipeline error:", webhookError);
+        }
+      })();
+      // На Vercel дожидаемся фоновой работы, иначе функция часто гасит до fetch к Make.
+      waitUntil(work);
+    }
 
     const result = streamText({
       model: openai(MODEL_ID),

@@ -8,6 +8,7 @@ import {
   SUGGESTED_QUESTIONS,
   SUGGESTED_QUESTIONS_LABEL,
 } from "@/lib/chat-config";
+import { SignOutButton } from "@/components/sign-out-button";
 
 export default function ChatPage() {
   const { messages, sendMessage, status, error } = useChat();
@@ -53,12 +54,17 @@ export default function ChatPage() {
     return (
       <main className="flex min-h-screen justify-center bg-white px-4 py-10 sm:py-14">
         <section className="flex w-full max-w-3xl flex-col rounded-3xl border border-slate-100 bg-white p-7 sm:p-10">
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
-            {CHAT_PAGE_TITLE}
-          </h1>
-          <p className="mt-3 text-base text-slate-600 sm:text-lg">
-            {CHAT_PAGE_SUBTITLE}
-          </p>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+                {CHAT_PAGE_TITLE}
+              </h1>
+              <p className="mt-3 text-base text-slate-600 sm:text-lg">
+                {CHAT_PAGE_SUBTITLE}
+              </p>
+            </div>
+            <SignOutButton />
+          </div>
         </section>
       </main>
     );
@@ -67,12 +73,17 @@ export default function ChatPage() {
   return (
     <main className="flex min-h-screen justify-center bg-white px-4 py-10 sm:py-14">
       <section className="flex w-full max-w-3xl flex-col rounded-3xl border border-slate-100 bg-white p-7 sm:p-10">
-        <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
-          {CHAT_PAGE_TITLE}
-        </h1>
-        <p className="mt-3 text-base text-slate-600 sm:text-lg">
-          {CHAT_PAGE_SUBTITLE}
-        </p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+              {CHAT_PAGE_TITLE}
+            </h1>
+            <p className="mt-3 text-base text-slate-600 sm:text-lg">
+              {CHAT_PAGE_SUBTITLE}
+            </p>
+          </div>
+          <SignOutButton />
+        </div>
 
         <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-600">

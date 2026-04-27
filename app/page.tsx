@@ -11,10 +11,10 @@ export default function Home() {
         <p className="mt-4 text-xl text-slate-600">{HOME_PAGE_TAGLINE}</p>
         <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Link
-            href="/chat"
+            href="/login"
             className="inline-flex w-full items-center justify-center rounded-xl bg-blue-600 px-8 py-5 text-xl font-semibold text-white transition hover:bg-blue-700 sm:w-auto"
           >
-            Начать
+            Войти или зарегистрироваться
           </Link>
           <Link
             href="/apply"
