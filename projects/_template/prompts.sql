@@ -1,0 +1,4 @@
+-- AI prompts for this project.
+-- project_id should match the project's row in a projects table (or use NULL for shared).
+-- INSERT INTO prompts (name, content, model, project_id) VALUES
+--   ('myproject:classify', 'Classify the following message: {{message}}', 'gpt-4o-mini', NULL);

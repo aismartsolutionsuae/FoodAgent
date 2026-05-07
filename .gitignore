@@ -1,14 +1,22 @@
 # dependencies
 node_modules/
+.pnpm-store/
 
 # next build output
 .next/
 out/
 
+# build artifacts
+dist/
+*.tsbuildinfo
+
 # env files
 .env
 .env.local
 .env.*.local
+
+# pnpm
+pnpm-lock.yaml
 
 # logs
 npm-debug.log*
@@ -20,3 +28,6 @@ pnpm-debug.log*
 .DS_Store
 .vscode/
 .idea/
+
+# turbo
+.turbo/

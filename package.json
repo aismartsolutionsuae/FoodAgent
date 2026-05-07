@@ -1,27 +1,16 @@
 {
-  "name": "food-agent",
-  "version": "0.1.0",
+  "name": "portfolio",
+  "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "typecheck": "tsc --noEmit"
-  },
-  "dependencies": {
-    "next": "^15.3.1",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "grammy": "^1.35.0",
-    "@supabase/supabase-js": "^2.49.4",
-    "openai": "^4.97.0"
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "typecheck": "turbo typecheck",
+    "food-agent": "pnpm --filter @portfolio/food-agent dev",
+    "worker": "pnpm --filter @portfolio/food-agent-worker dev"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.1.5",
-    "tailwindcss": "^4.1.5",
-    "@types/node": "^22.15.3",
-    "@types/react": "^19.1.2",
-    "@types/react-dom": "^19.1.2",
+    "turbo": "^2.5.0",
     "typescript": "^5.8.3"
   }
 }

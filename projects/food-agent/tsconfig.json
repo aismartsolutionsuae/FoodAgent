@@ -1,0 +1,23 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "noEmit": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [{ "name": "next" }],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@portfolio/database": ["../../packages/database/src/index.ts"],
+      "@portfolio/bot-core/transport/telegram": ["../../packages/bot-core/src/transport/telegram.ts"],
+      "@portfolio/bot-core/session": ["../../packages/bot-core/src/session/index.ts"],
+      "@portfolio/bot-core/ai": ["../../packages/bot-core/src/ai/index.ts"],
+      "@portfolio/bot-core/payments": ["../../packages/bot-core/src/payments/index.ts"],
+      "@portfolio/bot-core/analytics": ["../../packages/bot-core/src/analytics/index.ts"],
+      "@portfolio/bot-core/email": ["../../packages/bot-core/src/email/index.ts"]
+    }
+  },
+  "include": ["next-env.d.ts", "src/**/*.ts", "src/**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules", "worker"]
+}

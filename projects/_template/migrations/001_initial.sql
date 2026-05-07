@@ -1,0 +1,11 @@
+-- Project-specific tables only.
+-- Shared tables (users, subscriptions, addresses, prompts, portfolio_events)
+-- already exist — do NOT recreate them here.
+
+-- Example:
+-- create table if not exists my_project_items (
+--   id uuid primary key default gen_random_uuid(),
+--   user_id uuid references users(id) on delete cascade,
+--   title text not null,
+--   created_at timestamptz default now()
+-- );
