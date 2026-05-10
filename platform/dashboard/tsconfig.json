@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2021", "DOM"],
+    "jsx": "preserve",
+    "incremental": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "plugins": [{ "name": "next" }],
+    "paths": {
+      "@portfolio/database": ["../../packages/database/src/index.ts"],
+      "@portfolio/monitor": ["../monitor/services.ts"]
+    }
+  },
+  "include": ["src", "next.config.ts", "../monitor/services.ts"],
+  "exclude": ["node_modules"]
+}

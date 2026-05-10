@@ -1,16 +1,18 @@
 import { Bot } from 'grammy'
-import { supabase } from '@portfolio/database'
-import { services } from '../../monitor/services.js'
-
-// Personal admin bot — only responds to the owner's Telegram ID.
+import { registerDashboard } from './handlers/dashboard'
+import { registerEconomy } from './handlers/economy'
+import { registerStatus } from './handlers/status'
+import { registerUsers } from './handlers/users'
+import { registerPending } from './handlers/pending'
+import { registerExperiments } from './handlers/experiments'
+import { registerQuality } from './handlers/quality'
+import { registerIncidents } from './handlers/incidents'
 
 if (!process.env.ADMIN_BOT_TOKEN) throw new Error('ADMIN_BOT_TOKEN is not set')
 
 const OWNER_ID = Number(process.env.OWNER_TELEGRAM_ID ?? 0)
-
 const bot = new Bot(process.env.ADMIN_BOT_TOKEN)
 
-// Guard: ignore all messages not from owner
 bot.use(async (ctx, next) => {
   if (ctx.from?.id !== OWNER_ID) return
   return next()
@@ -19,49 +21,36 @@ bot.use(async (ctx, next) => {
 bot.command('start', async (ctx) => {
   await ctx.reply(
     '🤖 Portfolio Admin Bot\n\n' +
-    'Commands:\n' +
-    '/status — service health\n' +
-    '/users — total user count\n' +
-    '/revenue — this month revenue',
+    '/dashboard — сводка по всем проектам\n' +
+    '/economy — полная экономика (доходы / AI / инфра)\n' +
+    '/status — health check сервисов\n' +
+    '/users — кол-во пользователей\n' +
+    '/pending — очередь одобрения\n' +
+    '/experiments — PostHog флаги\n' +
+    '/quality — оценки Langfuse\n' +
+    '/incidents — инциденты BetterStack',
   )
 })
 
-bot.command('status', async (ctx) => {
-  const lines = await Promise.all(
-    services.map(async (svc) => {
-      try {
-        const resp = await fetch(svc.healthUrl, { signal: AbortSignal.timeout(5_000) })
-        return `${resp.ok ? '✅' : '❌'} ${svc.name}`
-      } catch {
-        return `❌ ${svc.name} (unreachable)`
-      }
-    }),
-  )
-  await ctx.reply(lines.join('\n') || 'No services configured.')
-})
+registerDashboard(bot)
+registerEconomy(bot)
+registerStatus(bot)
+registerUsers(bot)
+registerPending(bot)
+registerExperiments(bot)
+registerQuality(bot)
+registerIncidents(bot)
 
-bot.command('users', async (ctx) => {
-  const { count } = await supabase.from('users').select('*', { count: 'exact', head: true })
-  await ctx.reply(`👥 Total users: ${count ?? 0}`)
-})
-
-bot.command('revenue', async (ctx) => {
-  const start = new Date()
-  start.setDate(1)
-  start.setHours(0, 0, 0, 0)
-
-  const { data } = await supabase
-    .from('portfolio_events')
-    .select('properties')
-    .eq('event_name', 'subscription:activated')
-    .gte('created_at', start.toISOString())
-
-  const revenue = (data ?? []).reduce((sum, row) => {
-    const price = Number((row.properties as Record<string, unknown>)?.price_usd ?? 0)
-    return sum + price
-  }, 0)
-
-  await ctx.reply(`💰 Revenue this month: $${revenue.toFixed(2)}`)
-})
+bot.api.setMyCommands([
+  { command: 'start',       description: 'Главное меню' },
+  { command: 'dashboard',   description: 'Сводка по всем проектам' },
+  { command: 'economy',     description: 'Полная экономика (P&L)' },
+  { command: 'status',      description: 'Health check сервисов' },
+  { command: 'users',       description: 'Кол-во пользователей' },
+  { command: 'pending',     description: 'Очередь одобрения' },
+  { command: 'experiments', description: 'PostHog feature flags' },
+  { command: 'quality',     description: 'Оценки Langfuse' },
+  { command: 'incidents',   description: 'Инциденты BetterStack' },
+]).catch(console.error)
 
 bot.start()

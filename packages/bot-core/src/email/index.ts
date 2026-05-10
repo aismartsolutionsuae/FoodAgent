@@ -37,23 +37,19 @@ async function loadTemplate(name: string, variables: Record<string, string>): Pr
   const { readFile } = await import('fs/promises')
   const { join } = await import('path')
 
-  // Projects can override templates by placing them in their email-templates/
-  const candidates = [
-    join(process.cwd(), 'email-templates', `${name}.html`),
-    join(new URL(import.meta.url).pathname.replace('/src/email/index.ts', ''), 'email-templates', `${name}.html`),
-  ]
-
-  let html = ''
-  for (const p of candidates) {
-    try {
-      html = await readFile(p, 'utf-8')
-      break
-    } catch {
-      // try next
-    }
+  // Шаблоны ищутся в email-templates/ относительно рабочей директории проекта.
+  // Специальное имя '__raw__' — html передаётся напрямую через variables.__html__
+  if (name === '__raw__') {
+    return variables['__html__'] ?? ''
   }
 
-  if (!html) throw new Error(`Email template "${name}" not found`)
+  const templatePath = join(process.cwd(), 'email-templates', `${name}.html`)
+  let html = ''
+  try {
+    html = await readFile(templatePath, 'utf-8')
+  } catch {
+    throw new Error(`Email template "${name}" not found at ${templatePath}`)
+  }
 
   for (const [key, val] of Object.entries(variables)) {
     html = html.replaceAll(`{{${key}}}`, val)

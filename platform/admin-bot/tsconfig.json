@@ -1,7 +1,21 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
     "noEmit": true
   },
-  "include": ["src/**/*.ts"]
+  "ts-node": {
+    "transpileOnly": true
+  },
+  "include": ["src/**/*.ts", "../monitor/services.ts"],
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noEmit": true,
+    "paths": {
+      "@portfolio/database": ["../../packages/database/src/index.ts"],
+      "@portfolio/bot-core/*": ["../../packages/bot-core/src/*/index.ts"]
+    }
+  }
 }

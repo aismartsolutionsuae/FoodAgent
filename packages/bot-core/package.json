@@ -2,6 +2,11 @@
   "name": "@portfolio/bot-core",
   "version": "0.0.0",
   "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
   "exports": {
     "./transport/telegram": "./src/transport/telegram.ts",
     "./session": "./src/session/index.ts",
@@ -9,16 +14,23 @@
     "./ai": "./src/ai/index.ts",
     "./payments": "./src/payments/index.ts",
     "./analytics": "./src/analytics/index.ts",
-    "./email": "./src/email/index.ts"
+    "./email": "./src/email/index.ts",
+    "./experiments": "./src/experiments/index.ts",
+    "./support": "./src/support/index.ts",
+    "./marketing": "./src/marketing/index.ts",
+    "./qa": "./src/qa/index.ts",
+    "./admin-bot": "./src/admin-bot/notify.ts"
   },
   "dependencies": {
-    "@portfolio/database": "workspace:*",
-    "@supabase/supabase-js": "^2.49.4",
+    "@anthropic-ai/sdk": "^0.39.0",
     "@grammyjs/conversations": "^2.0.0",
     "@grammyjs/i18n": "^1.0.1",
     "@grammyjs/menu": "^1.3.0",
     "@grammyjs/ratelimiter": "^1.2.1",
+    "@portfolio/database": "workspace:*",
+    "@supabase/supabase-js": "^2.49.4",
     "grammy": "^1.35.0",
+    "langfuse": "^3.37.0",
     "openai": "^4.97.0",
     "posthog-node": "^4.16.0",
     "resend": "^4.5.2",
@@ -26,6 +38,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.15.3",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
   }
 }

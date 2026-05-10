@@ -1,0 +1,23 @@
+-- QA personas for this project.
+-- Добавь 3–5 персон, отражающих реальную аудиторию продукта.
+-- slug должен быть уникальным в рамках project_id.
+-- Запускать после packages/database/migrations/003_qa_personas.sql
+
+-- INSERT INTO personas (slug, name, language, description, traits, project_id) VALUES
+-- (
+--   'primary_user_type',
+--   'Human-readable Name',
+--   'en',           -- 'ru' | 'en' | 'ar'
+--   'One sentence who this person is and why they use this product',
+--   '{
+--     "budget": "mid",           -- "low" | "mid" | "high"
+--     "dietary": [],
+--     "tech_level": "mid",       -- "low" | "mid" | "high"
+--     "typical_queries": ["example query 1", "example query 2"],
+--     "use_cases": ["onboarding", "payment", "search"]
+--   }',
+--   'your-project-id'
+-- )
+-- ON CONFLICT (slug, project_id) DO UPDATE
+--   SET description = EXCLUDED.description,
+--       traits      = EXCLUDED.traits;
