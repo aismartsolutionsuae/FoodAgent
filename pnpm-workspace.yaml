@@ -2,4 +2,4 @@ packages:
   - 'packages/*'
   - 'platform/*'
   - 'projects/*'
-  - 'projects/food-agent/worker'
+  - 'projects/*/worker'

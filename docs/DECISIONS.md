@@ -89,6 +89,24 @@ Anthropic API key is NOT required until a legal/long-context product is activate
 
 ---
 
+## 2026-05-12 — Voice input: Whisper as standard cross-product capability
+
+**Decision**: OpenAI Whisper (`whisper-1`) as the single transcription solution across all products. Lives in `packages/bot-core/src/voice/` — exports `transcribe()`. Voice messages are converted to text before entering the standard message pipeline. Required in every user-facing interface.
+
+**Reasoning**: Voice messages are a primary communication format in Telegram for a significant user segment in UAE. Standardising at infrastructure level means every product gets it for free without product-level implementation. Direct OpenAI SDK call is acceptable here — `voice/` is infrastructure code, not product code.
+
+**Alternatives considered**: Product-level implementation per bot (rejected — duplication). Routing through `ask()` (rejected — different API surface, transcription ≠ completion).
+
+---
+
+## 2026-05-12 — Monorepo workspace config: product-agnostic root
+
+**Decision**: Root `package.json` scripts contain only generic commands (`dev`, `build`, `typecheck`, `test`). Product-specific shortcuts removed. `pnpm-workspace.yaml` uses `projects/*/worker` glob instead of hardcoded `projects/food-agent/worker`.
+
+**Reasoning**: Root config is shared infrastructure — hardcoding product names breaks the portfolio pattern and requires manual updates for each new product.
+
+---
+
 ## 2026-05-11 — Coding agent: Claude Code in Cursor + claude-code-action
 
 **Decision**: Primary coding workflow is Claude Code inside Cursor on developer's laptop (~90% of work, interactive). Fallback is `anthropics/claude-code-action` triggered via GitHub Issue/PR comments containing `@claude` mention (~10%, for emergency fixes when laptop unavailable).
