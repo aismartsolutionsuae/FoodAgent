@@ -114,3 +114,84 @@ Anthropic API key is NOT required until a legal/long-context product is activate
 **Reasoning**: Interactive coding with human-in-loop produces better quality than fully autonomous. Remote mode exists as escape hatch, not default.
 
 ---
+
+## 2026-05-12 — Privacy: minimal Telegram-bot stub, deferred deep compliance
+
+**Decision**: Privacy approach for MVP — four components, no more:
+
+1. Static Privacy Policy page per product at `projects/[name]/src/app/privacy/page.tsx`.
+2. One-line mention at end of `/start` welcome message: "By using this bot, you agree to the Privacy Policy: [link]".
+3. `/privacy` command in `bot-core` returns short summary plus link.
+4. `/delete` command in `bot-core` removes user row from Supabase (with FK cascades), deletes Langfuse traces, deletes PostHog events.
+
+Canonical English Privacy Policy text (to be localized via i18n for RU/AR):
+
+> Your messages (text and voice) are sent to OpenAI for processing.
+> According to their public policy (openai.com/policies/api-data-usage-policies),
+> API data is NOT used to train their models and is deleted from their side
+> within 30 days.
+>
+> The /delete command removes your data from our systems (Supabase, Langfuse,
+> PostHog). On the OpenAI side, data is automatically deleted within 30 days
+> of last use.
+
+Not done deliberately: per-call consent prompts, PII redaction before AI calls, consent-timestamp tracking, data-residency wrappers for third-party services.
+
+**Reasoning**: Telegram-based MVP for UAE market — practical PDPL enforcement risk near-zero for solo founder. The four-component stub is industry standard for AI Telegram bots (also Telegram's own Bot Privacy guidelines, mandatory for monetized bots since 2024) and provides a legal pointer at minimal UX cost. Deeper compliance is premature optimization until scale or jurisdictional exposure (e.g., EU users) justifies it.
+
+**Alternatives considered**:
+- Per-message AI consent prompt (rejected — UX-hostile).
+- Full PII redaction pipeline (rejected — engineering cost > MVP risk).
+- No privacy infrastructure at all (rejected — even minimum is industry standard; /delete is implicit PDPL requirement).
+
+**Revisit when**: first EU user appears OR UAE business license obtained OR external audit/complaint.
+
+---
+
+## 2026-05-12 — Pricing currency: AED tax-inclusive for UAE products
+
+**Decision**: Default pricing display is AED, tax-inclusive. Applies to all products targeting UAE B2C market. Lemon Squeezy is configured to show AED on checkout. Settlement currency to founder is whatever LS pays out (USD/EUR), but user never sees this.
+
+**Reasoning**: AED tax-inclusive is the universal B2C standard in UAE (Careem, Talabat, Noon, telecom apps). Removes cognitive friction of currency conversion.
+
+**Alternatives considered**: USD-only (rejected — foreign-feeling reduces conversion in UAE consumer apps). AED+USD with geo-detection (deferred — premature for single-market MVP).
+
+**Revisit when**: a specific product is built for or scales to international (non-UAE) audience. In that case, currency display is revisited within that project's scope — likely AED for UAE users + USD (or auto-detected local currency) for others via geo-detection. This default does not propagate automatically across products that change target market.
+
+---
+
+## 2026-05-12 — AI cost circuit breaker: two-level budgeting
+
+**Decision**: AI cost protection at two levels.
+
+**Per-user daily cap (hard kill)**:
+- Trial / no active subscription: **$0.50/day**
+- Active paid subscription: **$2.00/day**
+- Behavior on hit: return a friendly error to user ("Daily limit reached, please try again tomorrow"). Block further AI calls for that user until UTC midnight.
+
+**Global daily cap (alert + soft degradation)**:
+- Threshold: **$50/day** across entire portfolio.
+- Behavior on hit: fire one alert to admin-bot. Soft-degrade `gpt-5.4` → `gpt-5.4-mini` for all calls portfolio-wide until UTC midnight. Other model tiers unchanged (already minimum or correctness-critical — see degradation matrix below).
+- Degradation auto-clears at UTC midnight (new day, new budget).
+
+**Degradation matrix**:
+
+| Task | Default | When global cap hit |
+|---|---|---|
+| Conversational, creative, query parsing, escalation summary | gpt-5.4 | gpt-5.4-mini |
+| RAG responder | gpt-5.4-mini | (no change — already mini) |
+| Sentiment, triage, judge | gpt-4o-mini | (no change — already minimum) |
+| Structured extraction, analytics | gpt-4o | (no change — correctness-critical, downgrade would break JSON format) |
+| Embeddings | text-embedding-3-small | (no change — negligible cost) |
+| Whisper | whisper-1 | (no change — no cheaper alternative) |
+
+**Implementation**: middleware in `packages/bot-core/src/ai/index.ts` — before each `ask()` / `stream()` / `judge()` call, query `SUM(cost_usd_est)` from `portfolio_events` filtered by `event_name='ai:cost'` and current UTC day. Compare against per-user cap (subscription status from `subscriptions` table) and global cap. Caching of daily totals deferred until query load is measured.
+
+**Reasoning**: Two-level system balances abuse protection (per-user hard cap) with service continuity during cost spikes (global degrade keeps app alive at lower quality). Cost is already tracked in `portfolio_events` via `logAiCost()`, so no new data plumbing needed. Specific thresholds ($0.50 / $2 / $50) are starting hypotheses — calibrate from real logs after first month of usage.
+
+**Alternatives considered**:
+- Hard kill globally (rejected — kills service for all users at once, worse UX than degraded service).
+- Alert-only globally (rejected — relies on founder being available to respond manually).
+- Single flat cap regardless of subscription (rejected — does not differentiate paying customers from abuse).
+
+---

@@ -19,4 +19,4 @@
 
 ## Open architectural questions
 
-- (None right now — добавляй сюда вопросы, появляющиеся в работе.)
+- **VAT / Payments switch to Stripe** — revisit when founder obtains UAE business license. Under Lemon Squeezy (MoR) VAT is handled by LS. Under Stripe founder must register TRN and file VAT 5% (mandatory above 375k AED/year revenue). Also reconsider AED-inclusive vs USD pricing display at that point.
