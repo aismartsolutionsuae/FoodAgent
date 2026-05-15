@@ -46,7 +46,13 @@ All critical refinements recorded (Steps 1–7 done). Important backlog: model-f
 
 Returned to infrastructure plan. **Волна 1 (cosmetics) DONE**: CLAUDE.md `/src/` paths fixed in 5-layer table; `voice/` + `analytics/` added to monorepo structure; food-agent/CLAUDE.md got FROZEN banner.
 
-**Next: Волна 2** — base infra: `packages/database/` package audit (note: migrations already rebuilt), `packages/bot-core/locales/` base i18n strings, `business/support.ts` in `_template`, deploy template in `deploy.yml`.
+**CONFIRMED NEXT ACTION (user approved 2026-05-15): tag + delete food-agent.**
+1. `git tag food-agent-archive` (preserves all code, recoverable) then `git rm -r projects/food-agent/` + commit.
+2. This collapses the prior A/B/C dilemma — with food-agent gone, clean `packages/database/src/index.ts`: replace food-specific `DbUser` with shared shape `{id, project_id, language, created_at}`, add `DbUserIdentity`, remove `DbAddress/DbPreferences/DbPriceCache/DishResult/OnboardingStep/Goal/etc` (all were food-specific).
+3. Note: `bot-core/transport/telegram.ts` queries `users` by `telegram_id` — broken vs new schema, needs `resolveUser()` helper (Волна 3, flagged not done here).
+4. Project template to be rebuilt later on a real test project (NOT reusing food-agent; `_template` also raw — revisit then).
+
+**Then Волна 2** — base infra: `packages/database/` audit (migrations already rebuilt), `packages/bot-core/locales/` base i18n strings (ru/en/ar), `business/support.ts` in `_template`, deploy template in `deploy.yml`.
 
 ## How to resume
 
