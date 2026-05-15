@@ -252,3 +252,36 @@ Product handlers do a single `if (!result.ok) ctx.reply(i18n.t('voice.error.' + 
 **Revisit when**: bundling / unified billing considered (would favor cross-product identity linking); web auth method chosen (defines what web's `channel_user_id` holds — see STATUS open questions); account-linking flow built.
 
 ---
+
+## 2026-05-15 — Branch protection with AI write access
+
+**Decision**: `main` is protected — no direct pushes, all changes via PR. Settings: require PR before merge, 0 required approvals (solo founder), require `pr-check` status check green before merge, no force-push, no branch deletion. `claude-code-action` keeps `contents: write` (needs it for branch/PR commits) but cannot reach `main` directly — protection blocks it. `claude.yml` gets a `concurrency` group and `timeout-minutes` to cap runaway Actions/token spend.
+
+**Reasoning**: Standard posture for repos with AI write access — AI proposes via PR, never commits to main unreviewed. Required human reviewer is impossible solo, so the gate is CI (typecheck/test) + self-merge rather than peer review. Timeout/concurrency caps protect against a looping action burning GitHub minutes and Claude tokens.
+
+**Alternatives considered**: Required human review (rejected — solo founder, self-blocking). No protection (rejected — defeats the security concern that prompted this). Full enterprise lockdown (rejected — over-engineered for one person).
+
+---
+
+## 2026-05-15 — Working protocol: decision batching + model-switch notification
+
+**Decision**: Two collaboration rules, enforced via CLAUDE.md `Communication conventions` (the always-read operating manual); logged here only for rationale history.
+
+1. **Decision batching**: related decisions sharing context and risk level may be presented and recorded as one consolidated proposal, instead of strictly one-at-a-time. Reduces conversation round-trips without reducing reasoning depth.
+2. **Model / effort / thinking-switch notification**: at the end of a stage, if the next stage would benefit from a different model, reasoning effort, or extended thinking, Claude explicitly notifies the user and waits for the switch before proceeding. Never switch or assume silently.
+
+**Reasoning**: Round-trip overhead and running an expensive model on mechanical work were the two biggest avoidable costs against the daily limit. Batching cuts turns; explicit model-switch prompts let the user run strategic work on a stronger model and mechanical work on a cheaper one without losing control. Operating rules live in CLAUDE.md (executed every session); DECISIONS.md only records why.
+
+**Alternatives considered**: Rule in DECISIONS.md only (rejected — DECISIONS.md is history, not executed; rule would not be followed in future sessions). Auto-switch model without asking (rejected — user must retain control over model/cost).
+
+---
+
+## 2026-05-15 — AI call resilience: retry + fallback chain
+
+**Decision**: On OpenAI 5xx / timeout / 429 in `packages/bot-core/src/ai`: retry 2× with exponential backoff (~1s, ~4s). Still failing → one attempt on the tier's degradation target (gpt-5.4 → gpt-5.4-mini per existing degradation matrix; gpt-4o / structured-extraction stays — correctness-critical, no degrade). Still failing → return a typed error to caller (same discriminated-union pattern as the Whisper fallback decision). All retries and fallbacks recorded in the Langfuse trace.
+
+**Reasoning**: Standard resilience pattern (OpenAI cookbook exponential backoff; Stripe/AWS SDK retry conventions). Reuses the already-defined degradation matrix and the discriminated-union error convention — introduces no new patterns. Distinct from the AI cost circuit breaker: this is reactive to provider failure, the circuit breaker is preventive of spend.
+
+**Alternatives considered**: Fail immediately on first error (rejected — transient 5xx/429 are common and recoverable). Infinite retry (rejected — burns latency and tokens, worse UX than a clean typed error). Degrade gpt-4o too (rejected — structured extraction correctness would break).
+
+---

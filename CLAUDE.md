@@ -86,6 +86,11 @@ If user corrects you on a fact, do this — in order:
 
 Capitulating without verification damages trust as much as overclaiming.
 
+### Session efficiency
+
+- **Decision batching.** Related decisions that share context and risk level may be presented and recorded as one consolidated proposal — do not force strictly one-at-a-time when batching saves round-trips without reducing reasoning depth.
+- **Model / effort / thinking-switch notification.** At the end of a stage, if the next stage would benefit from a different model, reasoning effort, or extended thinking, explicitly notify the user with a leading ⚠️ yellow warning icon (same convention as ACTION REQUIRED) and wait for them to switch before proceeding. Never switch silently or assume. Typical guidance: strategic/architectural work → stronger model; mechanical implementation / recording → cheaper model.
+
 ## Periodic context capture
 
 At the end of each significant work session, ask:
