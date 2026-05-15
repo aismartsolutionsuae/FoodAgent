@@ -1,3 +1,5 @@
+> ⚠️ **STATUS: FROZEN** — do NOT propose or start work on this product. See `docs/STATUS.md`. Reactivate only on explicit user decision.
+
 # FoodAgent — AI Food Agent for UAE
 
 **Статус:** заморожен (Phase 1 завершена, Phase 2+ на паузе).

@@ -181,10 +181,10 @@ The review log is append-only. Past reviews stay readable forever — they're co
 | Слой | Зона ответственности | Живёт в монорепо |
 |------|----------------------|-----------------|
 | **1. Marketing Agent** | Контент, соцсети (Buffer API), SEO, Meta Ads, Google Ads, reply guy, funnel analysis | `platform/automation/` (n8n workflows) |
-| **2. Support Agent** | Tier-1 support (8 категорий), RAG по FAQ, refund → ручной approve, escalation | `packages/bot-core/support/` + `projects/[name]/business/support.ts` |
-| **3. Design & A/B Testing Agent** | Feature flags (PostHog), pricing experiments, auto-promotion winners | `packages/bot-core/experiments/` |
+| **2. Support Agent** | Tier-1 support (8 категорий), RAG по FAQ, refund → ручной approve, escalation | `packages/bot-core/src/support/` + `projects/[name]/business/support.ts` |
+| **3. Design & A/B Testing Agent** | Feature flags (PostHog), pricing experiments, auto-promotion winners | `packages/bot-core/src/experiments/` |
 | **4. Coding Agent** | Фичи, тесты, фиксы — интерактивно (Claude Code) или автономно (claude-code-action) | `.github/workflows/` |
-| **5. QA Agent** | Playwright E2E, Claude-as-judge, synthetic journeys, anomaly detection, BetterStack | `packages/bot-core/qa/` + `platform/monitor/` |
+| **5. QA Agent** | Playwright E2E, Claude-as-judge, synthetic journeys, anomaly detection, BetterStack | `packages/bot-core/src/qa/` + `platform/monitor/` |
 
 ## Стратегия моделей
 
@@ -239,10 +239,12 @@ All AI calls go through `ask()` / `judge()` from `@portfolio/bot-core/ai`. Provi
 packages/
   bot-core/src/
     ai/          — AI router (ask, judge, stream, costs, Langfuse)
+    voice/       — Whisper transcribe() — omnichannel voice input (planned)
     support/     — Support Agent (triage, RAG, tools, escalation)
     marketing/   — Marketing Agent (content gen, approval queue, publish)
     experiments/ — A/B Testing (PostHog flags, analyzer)
     qa/          — QA Agent (journey simulator, personas loader)
+    analytics/   — portfolio analytics helpers
     admin-bot/   — notifyAdminBot() — единая точка уведомлений
     email/       — Resend wrapper
     payments/    — Lemon Squeezy + Stripe

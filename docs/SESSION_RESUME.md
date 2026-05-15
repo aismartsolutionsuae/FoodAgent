@@ -38,13 +38,21 @@ Initialization session activated ADVISE mode (see CLAUDE.md `Communication conve
 - Local/remote criteria for Claude Code coding agent
 - Cost ceiling on `claude-code-action` runs
 
+## Current state (updated 2026-05-15)
+
+All critical refinements recorded (Steps 1–7 done). Important backlog: model-fallback recorded; voice-cost-ceiling subsumed by cost circuit breaker; data-residency / PITR / refund-decomposition **deferred to Weekly Review #1**. Branch protection: decision recorded; user applying GitHub UI settings (status-check gate to be added after first PR runs `pr-check`).
+
+**Phase 6 (Weekly Review #1 writeup) intentionally DEFERRED** by user — will self-trigger next session start (REVIEWS.md empty → protocol proposes first review immediately). Do not delete this file until Phase 6 done.
+
+Returned to infrastructure plan. **Волна 1 (cosmetics) DONE**: CLAUDE.md `/src/` paths fixed in 5-layer table; `voice/` + `analytics/` added to monorepo structure; food-agent/CLAUDE.md got FROZEN banner.
+
+**Next: Волна 2** — base infra: `packages/database/` package audit (note: migrations already rebuilt), `packages/bot-core/locales/` base i18n strings, `business/support.ts` in `_template`, deploy template in `deploy.yml`.
+
 ## How to resume
 
 1. Re-read this file
-2. Skim `docs/DECISIONS.md` 2026-05-12 entries (1, 3, 4 already recorded)
-3. Resume from **Step 5: Whisper fallback flow** — present options to user, get confirmation, record
-4. Continue through Steps 6, 7, then process "Important refinements" backlog one by one
-5. When user signals end of critical+important — execute **Phase 6**: write Weekly Architecture Review #1 to `docs/REVIEWS.md` (cover the entire audit retroactively), commit, push, delete this resume file
+2. Proceed with **Волна 2** in order (see STATUS.md / plan), unless user redirects
+3. Phase 6 self-triggers at session start via Weekly Review protocol
 
 ## Files touched this session
 
