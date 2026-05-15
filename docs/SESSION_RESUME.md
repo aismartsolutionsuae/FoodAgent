@@ -46,13 +46,13 @@ All critical refinements recorded (Steps 1–7 done). Important backlog: model-f
 
 Returned to infrastructure plan. **Волна 1 (cosmetics) DONE**: CLAUDE.md `/src/` paths fixed in 5-layer table; `voice/` + `analytics/` added to monorepo structure; food-agent/CLAUDE.md got FROZEN banner.
 
-**CONFIRMED NEXT ACTION (user approved 2026-05-15): tag + delete food-agent.**
-1. `git tag food-agent-archive` (preserves all code, recoverable) then `git rm -r projects/food-agent/` + commit.
-2. This collapses the prior A/B/C dilemma — with food-agent gone, clean `packages/database/src/index.ts`: replace food-specific `DbUser` with shared shape `{id, project_id, language, created_at}`, add `DbUserIdentity`, remove `DbAddress/DbPreferences/DbPriceCache/DishResult/OnboardingStep/Goal/etc` (all were food-specific).
-3. Note: `bot-core/transport/telegram.ts` queries `users` by `telegram_id` — broken vs new schema, needs `resolveUser()` helper (Волна 3, flagged not done here).
-4. Project template to be rebuilt later on a real test project (NOT reusing food-agent; `_template` also raw — revisit then).
+**food-agent DONE (2026-05-15):** tagged `food-agent-archive` (pushed), removed from tree (62 files). Swept refs: `platform/monitor/services.ts` (projects=[]), `.github/workflows/deploy.yml` (food-agent job removed), `.env.example` (scraper-worker block removed), `docs/STATUS.md` (Frozen→Archived section), `packages/database/src/index.ts` (DbUser→shared shape, +DbUserIdentity, +Channel; food types removed). DECISIONS.md left untouched (append-only history). Recover food-agent: `git checkout food-agent-archive -- projects/food-agent`.
 
-**Then Волна 2** — base infra: `packages/database/` audit (migrations already rebuilt), `packages/bot-core/locales/` base i18n strings (ru/en/ar), `business/support.ts` in `_template`, deploy template in `deploy.yml`.
+**OPEN GAP flagged (needs decision in Волна 2):** `subscriptions` table referenced generically by bot-core (transport/payments) but has NO shared migration (was only in deleted food-agent migration). Decide: add shared `subscriptions` migration (likely — billing is shared infra) vs make product-specific.
+
+**Volna 3 dependency (flagged, NOT done):** `bot-core/transport/telegram.ts` queries `users` by `telegram_id` — wrong vs new schema, needs `resolveUser(channel, channelUserId, projectId)` helper.
+
+**Next: Волна 2** — base infra: resolve `subscriptions` gap above; `packages/bot-core/locales/` base i18n strings (ru/en/ar); `business/support.ts` in `_template`; deploy template in `deploy.yml`. Project template rebuilt later on a real test product (not reusing `_template` as-is — it's raw).
 
 ## How to resume
 

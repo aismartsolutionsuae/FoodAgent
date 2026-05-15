@@ -24,33 +24,9 @@ export interface MonitoredService {
   betterStackMonitorId?: string
 }
 
-export const projects: ProjectConfig[] = [
-  {
-    id: 'food-agent',
-    name: 'Food Agent 🍔',
-    status: 'frozen',
-    services: [
-      {
-        name: 'food-agent (Vercel)',
-        healthUrl: process.env.FOOD_AGENT_URL
-          ? `${process.env.FOOD_AGENT_URL}/api/health`
-          : 'http://localhost:3000/api/health',
-      },
-      {
-        name: 'food-agent-worker (Railway)',
-        healthUrl: process.env.SCRAPER_WORKER_URL
-          ? `${process.env.SCRAPER_WORKER_URL}/health`
-          : 'http://localhost:3001/health',
-        railwayServiceId: process.env.RAILWAY_WORKER_SERVICE_ID,
-      },
-    ],
-    infraCosts: [
-      { label: 'Vercel Pro',         perMonthUsd: 20 },
-      { label: 'Railway (worker)',    perMonthUsd: 5  },
-      { label: 'Supabase (shared)',   perMonthUsd: 25 },
-    ],
-  },
-]
+// No active products yet. food-agent removed 2026-05-15 (archived as git
+// tag food-agent-archive). Add a ProjectConfig here as each product launches.
+export const projects: ProjectConfig[] = []
 
 // Плоский список сервисов — для /status
 export const services: MonitoredService[] = projects.flatMap((p) => p.services)

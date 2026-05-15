@@ -8,9 +8,9 @@
 - **Infrastructure layer**: build out `packages/bot-core/*` modules per CLAUDE.md (5 agent layers).
 - **No product selected yet** for first MVP. Selection happens after infrastructure stabilizes.
 
-## Frozen
+## Archived
 
-- **FoodAgent** (`projects/food-agent/`): frozen since 2026-05-10. Reason: focus shifted from product-first to infrastructure-first. Reactivate after at least one trainer product (likely NOC Generator or similar low-complexity candidate) is launched and stable.
+- **FoodAgent**: removed from working tree 2026-05-15, preserved in git tag `food-agent-archive` (recoverable via `git checkout food-agent-archive -- projects/food-agent`). Minimal revival likelihood. Was originally intended as the project template; template will instead be rebuilt fresh on a real test product. Reason for removal: frozen product-specific code (types, scrapers, schema) kept polluting the shared package and blocking infrastructure-first work.
 
 ## Next (planned, not started)
 

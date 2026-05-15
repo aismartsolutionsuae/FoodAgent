@@ -4,62 +4,40 @@ import { createClient } from '@supabase/supabase-js'
 
 export type Language = 'ru' | 'en' | 'ar'
 
-export type OnboardingStep =
-  | 'language'
-  | 'name'
-  | 'cuisine'
-  | 'stop_list'
-  | 'vegan'
-  | 'light_vegan'
-  | 'goal'
-  | 'address'
-  | 'complete'
+// Omnichannel identity channels — see DECISIONS.md 2026-05-15.
+export type Channel = 'telegram' | 'web' | 'whatsapp'
 
 export type SubscriptionStatus = 'trial' | 'active' | 'expired' | 'cancelled'
 
-export type Goal = 'diet' | 'variety' | 'balance'
-export type SweetPref = 'loves' | 'avoids' | 'neutral'
-export type VeganType = 'none' | 'strict' | 'light'
-export type AddressMode = 'saved' | 'each_time'
-
 // ── Shared DB row types ────────────────────────────────────────────────────────
+// Mirror the shared schema in packages/database/migrations/000_shared_bot_core.sql.
+// Product-specific row types live in projects/[name]/, NOT here.
 
+// users — channel-agnostic person record, one row per (person, project_id).
 export interface DbUser {
   id: string
-  telegram_id: number
-  name: string | null
+  project_id: string
   language: Language
-  onboarding_step: OnboardingStep
-  edit_mode: boolean
   created_at: string
-  last_query: string | null
 }
 
-export interface DbAddress {
+// user_identities — a person's reachable channels. project_id denormalized
+// from users for the UNIQUE(channel, channel_user_id, project_id) constraint.
+export interface DbUserIdentity {
   id: string
   user_id: string
-  label: string
-  address: string
-  lat: number | null
-  lng: number | null
+  project_id: string
+  channel: Channel
+  channel_user_id: string
+  created_at: string
 }
 
-export interface DbPreferences {
-  id: string
-  user_id: string
-  cuisines: string[]
-  stop_list: string[]
-  dietary_markers: string[]
-  goal: Goal | null
-  sweet_pref: SweetPref | null
-  vegan_type: VeganType | null
-  address_mode: AddressMode
-  preferred_restaurants: string[]
-  restaurant_stop_list: string[]
-  active_platforms: string[]
-  min_rating: number
-}
-
+// NOTE (flagged 2026-05-15): the `subscriptions` table is referenced
+// generically by bot-core (transport, payments) but currently has NO shared
+// migration — it was only created by food-agent's deleted migration. Either a
+// shared `subscriptions` migration must be added (subscriptions are shared
+// billing infra) or this type moves product-specific. Decision pending in
+// Волна 2 / database audit. Type kept so bot-core still typechecks.
 export interface DbSubscription {
   id: string
   user_id: string
@@ -69,32 +47,6 @@ export interface DbSubscription {
   ls_subscription_id: string | null
   ls_customer_id: string | null
   current_period_end: string | null
-}
-
-export interface DbPriceCache {
-  id: string
-  query_hash: string
-  platform: string
-  results: DishResult[]
-  created_at: string
-  expires_at: string
-}
-
-export interface DishResult {
-  name: string
-  restaurant: string
-  price: number
-  delivery_fee: number
-  service_fee: number
-  total: number
-  rating: number | null
-  deep_link: string
-  platform: string
-}
-
-export interface RankedDish extends DishResult {
-  isPreferred: boolean
-  isCuisineMatch: boolean
 }
 
 // ── Supabase client factory ────────────────────────────────────────────────────

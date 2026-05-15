@@ -4,42 +4,11 @@ on:
   push:
     branches: [main]
 
+# Product deploy jobs are added per product as they launch (see Волна 2
+# deploy-template task). food-agent job removed 2026-05-15 (archived as
+# git tag food-agent-archive).
+
 jobs:
-  deploy-food-agent:
-    name: Deploy food-agent → Vercel
-    runs-on: ubuntu-latest
-    if: |
-      contains(toJson(github.event.commits.*.modified), 'projects/food-agent') ||
-      contains(toJson(github.event.commits.*.modified), 'packages/')
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
-
-      - run: pnpm --filter @portfolio/food-agent build
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-
-      - uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID_FOOD_AGENT }}
-          working-directory: projects/food-agent
-          vercel-args: --prod
-
   deploy-admin-bot:
     name: Deploy admin-bot → Railway
     runs-on: ubuntu-latest
