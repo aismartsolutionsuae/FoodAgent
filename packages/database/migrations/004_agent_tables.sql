@@ -85,3 +85,9 @@ CREATE TABLE IF NOT EXISTS monitor_triggers (
 
 CREATE INDEX IF NOT EXISTS idx_monitor_triggers_project
   ON monitor_triggers(project_id, enabled);
+
+-- ── Row Level Security (deny-by-default; service_role bypasses) ───────────────
+ALTER TABLE support_knowledge    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE experiment_decisions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE published_content    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE monitor_triggers     ENABLE ROW LEVEL SECURITY;

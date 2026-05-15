@@ -1,5 +1,45 @@
 -- Shared infrastructure tables required by @portfolio/bot-core.
 -- Run ONCE against the shared Supabase project before deploying any bot.
+--
+-- RLS posture: every table below has RLS ENABLED with NO policies.
+-- anon/authenticated keys are denied by default; service_role (used by all
+-- bots and by migrations) bypasses RLS, so server-side access is unaffected.
+-- This is defense-in-depth for future client-side (dashboard / Telegram Web
+-- App) access — see DECISIONS.md 2026-05-15.
+
+-- ── Users (channel-agnostic person record, per-product scoped) ────────────────
+-- One row per (person, project_id). Per-product isolation: the same human
+-- using two products = two users rows. Cross-product analytics is possible
+-- via a JOIN on a shared channel identity when explicitly needed.
+CREATE TABLE IF NOT EXISTS users (
+  id          uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id  text        NOT NULL,
+  language    text        NOT NULL DEFAULT 'ru' CHECK (language IN ('ru','en','ar')),
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_project ON users(project_id);
+
+-- ── User identities (omnichannel) ─────────────────────────────────────────────
+-- A person reaches a product via one or more channels. channel_user_id holds:
+--   telegram → telegram_id as text
+--   web      → email / oauth-sub / anonymous uuid (web auth method TBD)
+--   whatsapp → wa_id (phone, E.164) — channel provisioned, integration later
+-- project_id is denormalized from users (immutable per user) so "one channel
+-- identity → one user within a product" is a simple UNIQUE constraint.
+-- MVP: each channel identity creates its own users row (no auto cross-channel
+-- linking). Schema supports linking later WITHOUT a migration.
+CREATE TABLE IF NOT EXISTS user_identities (
+  id              uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id         uuid        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  project_id      text        NOT NULL,
+  channel         text        NOT NULL CHECK (channel IN ('telegram','web','whatsapp')),
+  channel_user_id text        NOT NULL,
+  created_at      timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (channel, channel_user_id, project_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_identities_user ON user_identities(user_id);
 
 -- ── Session storage ───────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS bot_sessions (
@@ -72,3 +112,11 @@ CREATE INDEX IF NOT EXISTS idx_approval_queue_pending
 
 CREATE INDEX IF NOT EXISTS idx_approval_queue_project
   ON approval_queue(project_id, created_at DESC);
+
+-- ── Row Level Security (deny-by-default; service_role bypasses) ───────────────
+ALTER TABLE users            ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_identities  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE bot_sessions     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE portfolio_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE prompts          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE approval_queue   ENABLE ROW LEVEL SECURITY;

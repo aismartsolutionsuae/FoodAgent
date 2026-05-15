@@ -195,3 +195,60 @@ Not done deliberately: per-call consent prompts, PII redaction before AI calls, 
 - Single flat cap regardless of subscription (rejected — does not differentiate paying customers from abuse).
 
 ---
+
+## 2026-05-14 — Voice transcription fallback flow
+
+**Decision**: `transcribe()` in `packages/bot-core/src/voice/` returns a discriminated union, never throws. Three failure buckets, each maps to a localized user message via i18n:
+
+| Reason | Trigger | Canonical English message |
+|---|---|---|
+| `api_error` | OpenAI 5xx, network failure, rate limit | "Couldn't transcribe right now — please try again or send text." |
+| `too_large` | Audio > 25 MB (Whisper hard limit) | "Voice message too long — please send shorter audio or text." |
+| `empty_result` | Whisper returns empty string | "Couldn't make out what you said — please try again or send text." |
+
+Type shape:
+
+```ts
+type TranscribeResult =
+  | { ok: true; text: string }
+  | { ok: false; reason: 'api_error' | 'too_large' | 'empty_result' }
+```
+
+Product handlers do a single `if (!result.ok) ctx.reply(i18n.t('voice.error.' + result.reason))`. Text alternative is always offered. No retry buttons, no streaming, no soft time limits (cost cap from AI-cost-circuit-breaker decision handles abuse).
+
+**Reasoning**: Universal voice-assistant UX pattern (ChatGPT app, voice Telegram/Discord bots) — never silent, never crash, always offer text. Three buckets is the right granularity — finer distinctions don't change what the user does next (retry or switch to text). Discriminated union over throws keeps caller code one branch and forces compile-time handling of all cases.
+
+**Adjacent (not part of this decision, decide at `voice/` implementation time)**: Whisper `language` param — default auto-detect for UAE RU/EN/AR mix; pass user's `i18n.language` as hint if set in profile.
+
+**Alternatives considered**:
+- Throw typed errors (rejected — discriminated union is cleaner in TypeScript, forces handler to address all cases).
+- Single generic error message (rejected — `too_large` benefits from explicit "shorter" hint).
+- Retry button on error message (rejected — Telegram users naturally re-record without prompt).
+
+---
+
+## 2026-05-15 — User data model: per-product isolation, omnichannel identity, RLS-default
+
+**Decision**: All shared migrations rebuilt (Supabase DB empty, no data loss). Canonical user model:
+
+- **`users`** (shared, owned by `packages/database/migrations/`): channel-agnostic person record — `id, project_id, language, created_at`. One row per (person, project_id) — per-product isolation.
+- **`user_identities`** (shared): `id, user_id` FK (ON DELETE CASCADE), `project_id` (denormalized from users for the unique constraint), `channel` CHECK ('telegram'|'web'|'whatsapp'), `channel_user_id`, `created_at`, `UNIQUE(channel, channel_user_id, project_id)`. `whatsapp` provisioned in enum though unused.
+- Product-specific user data (onboarding, profile) → `projects/[name]/migrations/`, FK to `users.id`.
+- bot-core gets a `resolveUser(channel, channelUserId, projectId)` helper (upsert-or-get) — written once, every product and channel reuses it.
+- At MVP: each channel identity → its own users row. Auto cross-channel linking deferred; schema supports it without future migration.
+
+**RLS**: enabled on every table in `public` schema with NO policies — anon/authenticated denied by default; `service_role` (used by all bots and migrations) bypasses RLS, so bots are unaffected. Defense-in-depth for future client-side (dashboard / Telegram Web App) access.
+
+**Migration ownership**: shared tables (`users`, `user_identities`, `bot_sessions`, `portfolio_events`, `prompts`, `approval_queue`, support/qa/marketing infra) → `packages/database/migrations/`. Product-specific tables → `projects/[name]/migrations/`. Shared migrations must be self-contained — fixes prior bug where `users` was silently owned by food-agent's product migration while shared migrations referenced `users(id)`.
+
+**Reasoning**: Per-product isolation gives clean PDPL `/delete` (delete users row → identities cascade, analytics rows anonymized via existing `ON DELETE SET NULL`) plus independent product lifecycle, continuing the established `project_id` discriminator pattern (already used in prompts/portfolio_events/approval_queue). Omnichannel person+identities split is standard CDP/identity-resolution design (Segment, Twilio, Auth0, Supabase Auth all model it this way) — provisioned now because changing the identity model after data exists is the most painful migration class. RLS-default is Supabase official guidance; near-zero cost on empty DB vs expensive retrofit after an incident.
+
+**Alternatives considered**:
+- Shared identity keyed by telegram_id (rejected — couples products, blocks clean per-product deletion, not omnichannel).
+- Channel-specific columns on users (`telegram_id`, `whatsapp_id`, ...) (rejected — sparse, not extensible, no account-linking path).
+- Separate Supabase project per product (rejected — contradicts single-platform decision).
+- Auto cross-channel linking at MVP (deferred — hard identity-resolution problem; schema is linking-ready for later).
+
+**Revisit when**: bundling / unified billing considered (would favor cross-product identity linking); web auth method chosen (defines what web's `channel_user_id` holds — see STATUS open questions); account-linking flow built.
+
+---

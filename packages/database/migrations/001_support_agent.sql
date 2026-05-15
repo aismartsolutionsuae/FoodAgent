@@ -57,3 +57,8 @@ CREATE TABLE IF NOT EXISTS order_feedback (
 
 CREATE INDEX IF NOT EXISTS idx_order_feedback_project
   ON order_feedback(project_id, created_at DESC);
+
+-- ── Row Level Security (deny-by-default; service_role bypasses) ───────────────
+ALTER TABLE support_tickets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE feature_signals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE order_feedback  ENABLE ROW LEVEL SECURITY;

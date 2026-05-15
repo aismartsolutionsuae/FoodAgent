@@ -18,3 +18,6 @@ CREATE TABLE IF NOT EXISTS personas (
 
 CREATE INDEX IF NOT EXISTS idx_personas_project ON personas(project_id);
 CREATE INDEX IF NOT EXISTS idx_personas_active  ON personas(is_active);
+
+-- ── Row Level Security (deny-by-default; service_role bypasses) ───────────────
+ALTER TABLE personas ENABLE ROW LEVEL SECURITY;

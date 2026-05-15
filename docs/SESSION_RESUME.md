@@ -16,9 +16,9 @@ Initialization session activated ADVISE mode (see CLAUDE.md `Communication conve
 | 2 | VAT / Payments switch | ✅ Deferred | Moved to `STATUS.md → Open architectural questions`. Revisit at UAE business license milestone. |
 | 3 | Pricing currency | ✅ Recorded | DECISIONS.md `2026-05-12 — Pricing currency: AED tax-inclusive`. Revisit when product targets non-UAE. |
 | 4 | AI cost circuit breaker | ✅ Recorded | DECISIONS.md `2026-05-12 — AI cost circuit breaker`. Two-level: per-user $0.50 trial / $2 paid hard-kill; global $50/day alert + soft degrade gpt-5.4 → gpt-5.4-mini. |
-| 5 | Whisper fallback flow | ⏳ NEXT | UX block when Whisper API down or audio corrupted. Decide minimum graceful fallback. |
-| 6 | DB: RLS-as-default + cross-product user identity | ⏳ Pending | User confirmed willing to drop and rebuild Supabase (currently 5 migrations applied, DB empty). Two design choices: (a) RLS enabled by default on every table with per-table policies; (b) cross-product user identity — single `users.id` shared, or per-product distinct? |
-| 7 | Branch protection with AI write access | ⏳ Pending | `.github/workflows/claude.yml` has `contents: write`. Need protected branch rules on `main`: required PR review, no force-push, etc. |
+| 5 | Whisper fallback flow | ✅ Recorded | DECISIONS.md `2026-05-14 — Voice transcription fallback flow`. Discriminated union, 3 buckets, never throws. |
+| 6 | DB: omnichannel identity + RLS-default | ✅ Recorded + applied | DECISIONS.md `2026-05-15 — User data model`. `users` + `user_identities` (telegram/web/whatsapp), per-product isolation, RLS deny-by-default. Shared migrations 000–004 rewritten and re-run by user against empty Supabase. Food-agent product migrations NOT yet refactored (frozen-project work, separate task). |
+| 7 | Branch protection with AI write access | ⏳ NEXT | `.github/workflows/claude.yml` has `contents: write`. Need protected branch rules on `main`: required PR review, no force-push, etc. |
 
 ## Important refinements — sprint backlog (not yet processed)
 

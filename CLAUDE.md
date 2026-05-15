@@ -1,7 +1,5 @@
 # Portfolio Monorepo — AI Factory (UAE)
 
-> Детальное ТЗ агентов: `C:\Disk D\Docs\AI factory\!Слои агентов.md`
-
 ## Always-read-first protocol
 
 Before doing ANYTHING, read in this order:

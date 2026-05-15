@@ -20,3 +20,4 @@
 ## Open architectural questions
 
 - **VAT / Payments switch to Stripe** — revisit when founder obtains UAE business license. Under Lemon Squeezy (MoR) VAT is handled by LS. Under Stripe founder must register TRN and file VAT 5% (mandatory above 375k AED/year revenue). Also reconsider AED-inclusive vs USD pricing display at that point.
+- **Web auth method** — not yet chosen (magic link / OAuth / anonymous-first). Decision defines what the `web` channel's `channel_user_id` holds in `user_identities` (see DECISIONS.md 2026-05-15). Decide when first web-facing product is selected; no impact on Telegram-only products.
