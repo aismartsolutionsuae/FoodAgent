@@ -285,3 +285,30 @@ Product handlers do a single `if (!result.ok) ctx.reply(i18n.t('voice.error.' + 
 **Alternatives considered**: Fail immediately on first error (rejected — transient 5xx/429 are common and recoverable). Infinite retry (rejected — burns latency and tokens, worse UX than a clean typed error). Degrade gpt-4o too (rejected — structured extraction correctness would break).
 
 ---
+
+## 2026-05-15 — Refund policy decomposed (supersedes flat 2026-05-11 manual-only)
+
+**Decision**: Binary outcome only — approve or decline, no pause/downgrade. Routing by objective signals; manual reserved for the one judgment-needing case.
+
+| Case | Action |
+|---|---|
+| System-detected technical failure (payment captured, no successful delivery/generation event, or logged error on the transaction) | **AUTO-APPROVE** |
+| Request outside the stated refund window (timestamp-based), product delivered, no technical-failure signal | **AUTO-DECLINE** |
+| One-time digital good delivered, no technical-failure signal, policy = no-refund-after-delivery | **AUTO-DECLINE** |
+| Duplicate request / already refunded | **AUTO-DECLINE** |
+| Hard abuse signal: same user already received ≥ N refunds (N configurable) | **AUTO-DECLINE + flag** |
+| In refund window, delivered, no technical failure, subjective complaint (quality / remorse) | **MANUAL: approve or decline** |
+
+Auto-approve trigger MUST be system-detected, never user-claimed. A user merely saying "it didn't work" is subjective → manual. All auto-decline messages include an appeal line ("reply if you think this is a mistake"); a reply routes to `approval_queue` as a manual-review item.
+
+**User messaging** (canonical English, localized via i18n keys `refund.*`):
+- Auto-approve: "We detected a technical issue with your purchase and refunded it in full. The amount returns to your payment method within [X] business days. Sorry for the trouble — you're welcome to try again anytime."
+- Decline (policy / out-of-window): "We've reviewed your refund request. It falls outside our refund policy [link], so we're unable to refund in this case. If you think this is a mistake, just reply to this message."
+
+**Reasoning**: Mirrors app-store / Paddle / Gumroad standard for simple digital goods — objective cases automated, the chargeback-sensitive subjective in-window case stays human (auto-declining "I'm not satisfied" within window is the top chargeback trigger industry-wide). Appeal line on every auto-decline is standard chargeback defense at near-zero added complexity. Reconciles industry decomposition with the prior deliberate manual-gate intent (anti-abuse + churn signal) by keeping the one subjective bucket manual rather than abandoning the gate entirely.
+
+**Alternatives considered**: Full flat manual-only (rejected — superseded; too much manual for objective cases). Auto-decline subjective in-window complaints (rejected — top chargeback/dispute trigger). pause/downgrade alternatives in messaging (rejected — user wants binary approve/decline only, less complexity).
+
+**Revisit when**: products grow beyond simple (tiered subscriptions, B2B, annual) — then reconsider pro-rata, pause/downgrade offers, finer abuse detection, per-product-type windows. Model is intentionally scoped to current simple products.
+
+---

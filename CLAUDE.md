@@ -221,7 +221,7 @@ All AI calls go through `ask()` / `judge()` from `@portfolio/bot-core/ai`. Provi
 - **Каркас vs проект.** `packages/` = структура для всех проектов. `projects/[name]/` = специфика конкретного проекта (персоны, промпты, эксперименты, support knowledge).
 - **Промпты в БД.** Все AI-промпты в Supabase `prompts`. Модель меняется в таблице без редеплоя.
 - **i18n с дня 1.** RU/EN/AR через `@portfolio/bot-core/i18n` для всех B2C продуктов.
-- **Refund — только ручной approve.** Auto-refund отключён. Все запросы → `approval_queue`.
+- **Refund — binary (approve/decline), routed by objective signals.** Auto-approve only on system-detected technical failure; auto-decline on out-of-window / no-refund-after-delivery / duplicate / hard-abuse; manual only for in-window subjective complaints. No pause/downgrade. Details: DECISIONS.md 2026-05-15.
 - TypeScript strict mode. Без комментариев если WHY не неочевидно.
 
 ## Обязательные стандарты каждого проекта
