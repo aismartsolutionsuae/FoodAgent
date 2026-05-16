@@ -364,3 +364,21 @@ Auto-approve trigger MUST be system-detected, never user-claimed. A user merely 
 **File hygiene (same session)**: 2 entries moved verbatim to `docs/DECISIONS-archive.md` — 2026-05-11 repo rename (historical) and 2026-05-11 refund manual-only (superseded by 2026-05-15). ~400 tokens off the every-session auto-load; minor vs the session-length root cause. Append-only spirit preserved: text unedited, pointer line retained in this log. Remaining entries are live constraints — kept.
 
 ---
+
+## 2026-05-16 — Branch protection decomposed: convention-based, docs direct / code via gh PR (supersedes 2026-05-15)
+
+**Decision**: Supersedes flat 2026-05-15 branch protection — that protection was never applied (`main` is unprotected on GitHub, verified 2026-05-16 via `gh api`; today's 6 direct commits prove it). GitHub branch protection is branch-scoped, not path-scoped — "docs bypass, code via PR" is not natively enforceable; this is therefore a **convention** (lives in CLAUDE.md, executed each session), not a technical lock.
+
+- docs/governance only (`**/*.md`, `docs/**`, `CLAUDE.md`) → direct commit to `main`, no PR. No reviewer, no code, CI irrelevant — PR is pure ceremony.
+- code/config → PR driven by Claude via `gh` in-session: `gh pr create` → `gh pr checks --watch` → merge only on green. No human clicks.
+- Autonomous `claude-code-action` (the ~10% escape hatch) → PR-only, never direct to `main`. This is the only place the original "unreviewed AI to main" risk is real; constrained at that layer, not via blanket protection.
+- Async gap (CI fails after session ends): no Telegram routing now. Claude does not end a session with a dangling unmerged PR — it merges on green CI or explicitly reports "PR #N open, CI not awaited". admin-bot routing deferred until real async load (same defer pattern as resolveUser concurrency).
+- `pr-check.yml` gets `paths-ignore` for docs (defense-in-depth with the convention).
+
+**Reasoning**: 2026-05-15 protection was intent never realized; the PR ceremony was self-imposed (Claude's own proposal), not GitHub-enforced, and produced manual friction + spurious red Vercel noise on docs changes for a solo founder with no reviewer. Native per-path enforcement is impossible, so convention is the only available form (same class as session-boundary discipline). The genuine security risk — unreviewed autonomous AI commits to main — is narrowed to `claude-code-action` and handled there.
+
+**Alternatives considered**: Real GitHub branch protection (rejected — branch-scoped; would force docs through PR too, reinstating the exact friction this removes). main fully open incl. autonomous agent (rejected — leaves the one real security risk open). Telegram routing for async CI-fail now (deferred — no async load; YAGNI).
+
+**Revisit when**: first product ships (real deploy targets → CI failures carry production risk → revisit enforced protection + admin-bot routing); or autonomous `claude-code-action` usage grows materially.
+
+---

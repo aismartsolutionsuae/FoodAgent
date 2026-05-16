@@ -96,6 +96,14 @@ Capitulating without verification damages trust as much as overclaiming.
 - **Model / effort / thinking-switch notification.** At the end of a stage, if the next stage would benefit from a different model, reasoning effort, or extended thinking, explicitly notify the user with a leading ⚠️ yellow warning icon (same convention as ACTION REQUIRED) and wait for them to switch before proceeding. Never switch silently or assume. Typical guidance: strategic/architectural work → stronger model; mechanical implementation / recording → cheaper model.
 - **Session boundary discipline.** Context overflow killed a session 2026-05-16 (~473K tokens vs 200K window). At a logical milestone (a commit closing a coherent unit of work), prompt the user to check `/context` and offer a fresh session instead of extending one marathon session. A fresh session is zero-loss — state lives in git + STATUS/DECISIONS; mid-session `/compact` is lossy and reserved for last resort. Do not silently continue a long session past a natural boundary. (Rationale: DECISIONS.md 2026-05-16 — Context-overflow guard.)
 
+### Git / PR workflow (convention — `main` is unprotected by design)
+
+- docs/governance only (`**/*.md`, `docs/**`, `CLAUDE.md`) → commit **direct to `main`**, no PR.
+- code/config → Claude opens a PR via `gh` in-session (`gh pr create` → `gh pr checks --watch` → merge only on green); no human clicks. `gh.exe` is at `C:\Program Files\GitHub CLI\gh.exe` (call by full path; PATH may be stale).
+- Never end a session with a dangling unmerged PR — merge on green CI, or explicitly tell the user "PR #N open, CI not awaited".
+- Autonomous `claude-code-action` → PR-only, never direct to `main`.
+- (Rationale: DECISIONS.md 2026-05-16 — Branch protection decomposed. Runbook: `docs/RUNBOOK-git-workflow.md`.)
+
 ## Periodic context capture
 
 At the end of each significant work session, ask:
