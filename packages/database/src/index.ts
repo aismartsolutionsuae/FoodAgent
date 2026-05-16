@@ -32,12 +32,11 @@ export interface DbUserIdentity {
   created_at: string
 }
 
-// NOTE (flagged 2026-05-15): the `subscriptions` table is referenced
-// generically by bot-core (transport, payments) but currently has NO shared
-// migration — it was only created by food-agent's deleted migration. Either a
-// shared `subscriptions` migration must be added (subscriptions are shared
-// billing infra) or this type moves product-specific. Decision pending in
-// Волна 2 / database audit. Type kept so bot-core still typechecks.
+// Subscription-model products only. Billing model is product-type-driven
+// (DECISIONS.md 2026-05-16): no shared `subscriptions` migration exists —
+// the table is created when the first subscription-model product is selected.
+// `createSubscriptionMiddleware` is opt-in; pay-per-use / one-time products
+// do not use this type. Kept so bot-core typechecks.
 export interface DbSubscription {
   id: string
   user_id: string

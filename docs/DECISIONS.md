@@ -312,3 +312,19 @@ Auto-approve trigger MUST be system-detected, never user-claimed. A user merely 
 **Revisit when**: products grow beyond simple (tiered subscriptions, B2B, annual) — then reconsider pro-rata, pause/downgrade offers, finer abuse detection, per-product-type windows. Model is intentionally scoped to current simple products.
 
 ---
+
+## 2026-05-16 — Billing model is product-type-driven, no speculative billing schema
+
+**Decision**: Billing model is a per-product decision, not baked into shared infrastructure. Three standard models recognized: **subscription** (recurring, trial → period), **one-time** (pay once), **pay-per-use / credits** (buy credits, consume per action).
+
+- Shared infrastructure provides only the payment-provider abstraction (Lemon Squeezy / Stripe) — already in `packages/bot-core/src/payments/`.
+- Billing tables (`subscriptions`, `purchases`, `credits` + ledger) are NOT created speculatively. Each is added when the first product using that model is selected. With no product chosen yet, no billing table exists in shared migrations.
+- `bot-core/transport` `createSubscriptionMiddleware` is opt-in by design — only subscription-model products wire it. `DbSubscription` type retained, annotated "subscription-model products only".
+
+**Reasoning**: Reducing all products to "subscription or not" was the wrong abstraction (same product-type-first lens applied to refund policy). Standard SaaS monetization recognizes 3 distinct billing models (per Stripe Billing categorization); forcing a `subscriptions` table on a pay-per-use product is incorrect. Resolves the orphaned `subscriptions` reference (left by food-agent removal) via principle, not a speculative guess at the billing model.
+
+**Alternatives considered**: Add shared `subscriptions` migration now (rejected — assumes all products are subscription; wrong for pay-per-use). Make `subscriptions` product-specific now (rejected — premature; no product selected, no billing model known).
+
+**Revisit when**: first product is selected — its billing model determines which billing table is created and where (shared if generic across that model, product-specific if bespoke).
+
+---
