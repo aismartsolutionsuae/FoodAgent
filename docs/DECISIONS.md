@@ -348,3 +348,15 @@ Auto-approve trigger MUST be system-detected, never user-claimed. A user merely 
 **Revisit when**: a calibration field in `project_config` proves it needs its own typed table/columns (promote from jsonb then).
 
 ---
+
+## 2026-05-16 — resolveUser concurrency: app-level race handling now, atomic RPC deferred
+
+**Decision**: `resolveUser` (omnichannel get-or-create in `bot-core/identity`) handles the new-user race at application level: SELECT identity → if absent, INSERT user + INSERT identity → on `user_identities` UNIQUE violation (concurrent first message), delete the orphan user row and re-resolve to the winner. No DB transaction; multiple sequential Supabase calls.
+
+**Reasoning**: Correct under the documented race and simple to reason about. A fully atomic version (single Postgres function / RPC doing upsert-or-get in one round trip) is the cleaner long-term form but adds a migration and indirection not justified at zero load. The UNIQUE constraint is the real integrity guarantee — the app logic only decides what to do on conflict.
+
+**Alternatives considered**: Atomic Postgres RPC now (deferred — premature at zero traffic; revisit under real concurrency). Ignore the race (rejected — duplicate users / orphan rows on concurrent first message). DB transaction wrapper (rejected — Supabase JS client has no ergonomic multi-statement tx; RPC would be the real fix).
+
+**Revisit when**: real concurrent load appears, or duplicate-user / orphan-row symptoms show in logs — promote to an atomic Postgres function then.
+
+---

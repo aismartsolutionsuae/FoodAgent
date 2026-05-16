@@ -35,7 +35,7 @@ export function registerPending(bot: Bot): void {
 
     const { data: item } = await supabase
       .from('approval_queue')
-      .select('action_type, payload')
+      .select('agent_type, action_type, payload')
       .eq('id', id)
       .single()
 
@@ -46,17 +46,27 @@ export function registerPending(bot: Bot): void {
 
     await ctx.editMessageReplyMarkup({ reply_markup: new InlineKeyboard() })
 
-    if (item?.action_type && item?.payload) {
+    const short = id.slice(0, 8)
+
+    // approval_queue is shared across agents. Only marketing has an
+    // auto-dispatch handler today; other agent types are marked approved
+    // but their action is NOT executed — say so plainly instead of
+    // implying success (a silent no-op on e.g. a refund is dangerous).
+    if (item?.agent_type === 'marketing' && item?.action_type && item?.payload) {
       try {
         await dispatchApproved(item.action_type as ContentType, item.payload as ApprovalPayload)
-        await ctx.reply(`✅ Одобрено и опубликовано (${id.slice(0, 8)}…)`)
+        await ctx.reply(`✅ Одобрено и опубликовано (${short}…)`)
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err)
         await ctx.reply(`✅ Одобрено, но публикация не удалась:\n${msg}`)
       }
-    } else {
-      await ctx.reply(`✅ Одобрено (${id.slice(0, 8)}…)`)
+      return
     }
+
+    await ctx.reply(
+      `✅ Одобрено (${short}…) — ${item?.agent_type ?? '?'}:${item?.action_type ?? '?'} ` +
+      `требует ручного действия, авто-диспетчер ещё не подключён.`,
+    )
   })
 
   bot.callbackQuery(/^reject:(.+)$/, async (ctx) => {
