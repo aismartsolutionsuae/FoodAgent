@@ -1,0 +1,33 @@
+# Wave 3.5 Layer-4 (autonomous coder) one-shot smoke. workflow_dispatch ONLY —
+# running per commit would spam PRs and burn Anthropic tokens + Actions minutes
+# (cost-discipline, DECISIONS.md 2026-05-16). Opens a throwaway @claude issue;
+# the existing claude.yml fires and should open a no-op PR. Honest-skip if
+# ANTHROPIC_API_KEY is not yet provisioned (separate axis, on-demand).
+name: Layer-4 Smoke
+
+on:
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  layer4:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip if Anthropic key not provisioned
+        if: ${{ secrets.ANTHROPIC_API_KEY == '' }}
+        run: |
+          echo "ANTHROPIC_API_KEY not set — Layer-4 honest-skip (separate axis, on-demand)."
+          echo "Record in ROADMAP 3.5 Evidence: 'layer4 skip — ANTHROPIC_API_KEY not provisioned'."
+
+      - name: Trigger autonomous coder via throwaway issue
+        if: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue create \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Wave 3.5 Layer-4 smoke (throwaway)" \
+            --body "@claude This is a no-op Layer-4 smoke. Create a PR that adds a single line to docs/superpowers/plans/.layer4-smoke-marker (create the file) containing the text 'layer4 ok' and nothing else. Do not modify any other file."
+          echo "Issue created. Watch the Claude Code Action run; expect a no-op PR."
