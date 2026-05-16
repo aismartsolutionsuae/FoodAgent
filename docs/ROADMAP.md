@@ -36,7 +36,7 @@ State at the start of Wave 3. Findings drive the Wave 3 sub-stages.
 
 Each sub-stage = its own commit/PR (code → PR per convention; docs direct). Tick here on merge.
 
-- [ ] **3.1 Cleanup** (no external steps): physically delete `projects/food-agent/`; drop `SCRAPER_*` + LemonSqueezy stub vars from `.env.local`. (transport/payments subscription code is opt-in by design — NOT touched.)
+- [x] **3.1 Cleanup** (no external steps): physically delete `projects/food-agent/`; drop `SCRAPER_*` + LemonSqueezy stub vars from `.env.local`. (transport/payments subscription code is opt-in by design — NOT touched.) — *done 2026-05-16: dir deleted (0 git-tracked, tag `food-agent-archive` intact), `SCRAPER_*`/`LEMONSQUEEZY_*` removed from `.env.local`, `pnpm install --frozen-lockfile` + `pnpm typecheck` (6/6) green.*
 - [ ] **3.2 Schema alignment** (marketing only): rework `marketing.publishEmailCampaign` onto `user_identities` email channel; `audience` trial/paid throws an actionable error (billing deferred until product, DECISIONS 2026-05-16).
 - [ ] **3.3 Prompt-table compliance**: support/qa currently bypass the `prompts` table (sentiment hardcoded + direct provider call; qa judge passes prompt text as prompt name → empty content). Refactor both to named shared prompts via `ask()`/`judge()` + seed migration `005_shared_agent_prompts.sql`. (Experiments has no AI calls — none needed.)
 - [ ] **3.4 SaaS wiring** ⚠️ requires founder portal/key steps: Langfuse, PostHog, BetterStack, Resend, admin-bot Telegram — one at a time, each with a smoke check.
