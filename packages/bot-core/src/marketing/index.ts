@@ -107,30 +107,34 @@ async function publishSocialPost(payload: SocialPostPayload): Promise<void> {
 }
 
 // ── publishEmailCampaign ──────────────────────────────────────────────────────
+// Omnichannel: recipients come from user_identities (channel='email').
+// audience 'trial'/'paid' depends on a billing table that does not exist until a
+// product is selected (DECISIONS.md 2026-05-16) — fail loud with an actionable message.
 
 async function publishEmailCampaign(payload: EmailPayload): Promise<void> {
-  let query = supabase.from('users').select('id, email:telegram_id')
-
   if (payload.audience === 'trial' || payload.audience === 'paid') {
-    const { data: subs } = await supabase
-      .from('subscriptions')
-      .select('user_id')
-      .eq('status', payload.audience === 'trial' ? 'trial' : 'active')
-
-    const userIds = (subs ?? []).map((s) => s.user_id)
-    if (!userIds.length) return
-    query = query.in('id', userIds)
+    throw new Error(
+      `audience='${payload.audience}' requires a billing model. ` +
+      `Billing model not selected yet (DECISIONS.md 2026-05-16). ` +
+      `Use audience='all' or wait until the first product defines billing.`,
+    )
   }
 
-  const { data: users } = await query.limit(500)
-  if (!users?.length) return
+  const { data: identities } = await supabase
+    .from('user_identities')
+    .select('channel_user_id')
+    .eq('channel', 'email')
+    .limit(500)
+
+  if (!identities?.length) return
 
   const from = process.env.MARKETING_FROM_EMAIL ?? 'noreply@portfolio.app'
   await Promise.allSettled(
-    users
-      .filter((u): u is typeof u & { email: string } => typeof u.email === 'string')
-      .map((u) =>
-        sendEmail({ to: u.email, subject: payload.subject, template: '__raw__', variables: { __html__: payload.html }, from }),
+    identities
+      .map((i) => (i as { channel_user_id: string }).channel_user_id)
+      .filter((e): e is string => typeof e === 'string' && e.includes('@'))
+      .map((email) =>
+        sendEmail({ to: email, subject: payload.subject, template: '__raw__', variables: { __html__: payload.html }, from }),
       ),
   )
 }
