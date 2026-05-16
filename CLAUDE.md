@@ -94,6 +94,7 @@ Capitulating without verification damages trust as much as overclaiming.
 
 - **Decision batching.** Related decisions that share context and risk level may be presented and recorded as one consolidated proposal — do not force strictly one-at-a-time when batching saves round-trips without reducing reasoning depth.
 - **Model / effort / thinking-switch notification.** At the end of a stage, if the next stage would benefit from a different model, reasoning effort, or extended thinking, explicitly notify the user with a leading ⚠️ yellow warning icon (same convention as ACTION REQUIRED) and wait for them to switch before proceeding. Never switch silently or assume. Typical guidance: strategic/architectural work → stronger model; mechanical implementation / recording → cheaper model.
+- **Session boundary discipline.** Context overflow killed a session 2026-05-16 (~473K tokens vs 200K window). At a logical milestone (a commit closing a coherent unit of work), prompt the user to check `/context` and offer a fresh session instead of extending one marathon session. A fresh session is zero-loss — state lives in git + STATUS/DECISIONS; mid-session `/compact` is lossy and reserved for last resort. Do not silently continue a long session past a natural boundary. (Rationale: DECISIONS.md 2026-05-16 — Context-overflow guard.)
 
 ## Periodic context capture
 
