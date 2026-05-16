@@ -239,6 +239,7 @@ All AI calls go through `ask()` / `judge()` from `@portfolio/bot-core/ai`. Provi
 - **i18n с дня 1.** RU/EN/AR через `@portfolio/bot-core/i18n` для всех B2C продуктов.
 - **Refund — binary (approve/decline), routed by objective signals.** Auto-approve only on system-detected technical failure; auto-decline on out-of-window / no-refund-after-delivery / duplicate / hard-abuse; manual only for in-window subjective complaints. No pause/downgrade. Details: DECISIONS.md 2026-05-15.
 - TypeScript strict mode. Без комментариев если WHY не неочевидно.
+- **Тест-конвенция (vitest 3.2.4 footgun).** Для async-функции с `try/catch` НЕ тестируй ветку ошибки через общий module-level `vi.fn()` с `mockRejectedValue`/бросающей реализацией + `beforeEach(mockReset)` — vitest 3.2.4/tinyspy всплывает брошенную ошибку как unhandled и валит тест, хотя продакшн-код её ловит. Паттерн: инъекция реализации через `let impl; vi.mock(mod, () => ({ fn: (...a) => impl(...a) }))` — happy-path = свежий `vi.fn()` (проверка аргументов), error-path = обычная бросающая функция (не spy). Примеры: `src/support/sentiment.test.ts`, `src/qa/judge.test.ts`. Применимо и к автономному Layer-4 кодеру.
 
 ## Обязательные стандарты каждого проекта
 
