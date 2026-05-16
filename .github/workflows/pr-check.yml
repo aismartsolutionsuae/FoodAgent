@@ -3,6 +3,12 @@ name: PR Check
 on:
   pull_request:
     branches: [main]
+    # docs/governance go direct to main (no PR) by convention; if a PR is
+    # docs-only anyway, skip heavy CI. See DECISIONS.md 2026-05-16.
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - 'CLAUDE.md'
 
 jobs:
   typecheck:
