@@ -236,6 +236,7 @@ All AI calls go through `ask()` / `judge()` from `@portfolio/bot-core/ai`. Provi
 - Промпты в `projects/[name]/prompts.sql`
 - All AI calls via `ask()` / `judge()` from `@portfolio/bot-core/ai`. Direct calls to OpenAI/Anthropic SDK are forbidden in product code.
 - Prompts live in Supabase `prompts` table, not in code. Adding a prompt = SQL INSERT in `projects/[name]/prompts.sql`, not a TypeScript constant.
+- Per-project calibration standard (DECISIONS.md 2026-05-16): shared = engine + subagent role/high-level prompt (`prompts.project_id=NULL`); per-project DATA in `projects/[name]/*.sql` (`prompts.sql`, `personas.sql`, `support_knowledge.sql`, + `project_config` jsonb for non-prompt calibration); per-project CODE in `projects/[name]/business/*.ts` only where product-specific behavior exists — no empty adapters.
 
 ## Структура монорепо
 

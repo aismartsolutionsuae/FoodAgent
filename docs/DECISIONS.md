@@ -328,3 +328,23 @@ Auto-approve trigger MUST be system-detected, never user-claimed. A user merely 
 **Revisit when**: first product is selected — its billing model determines which billing table is created and where (shared if generic across that model, product-specific if bespoke).
 
 ---
+
+## 2026-05-16 — Per-project calibration standard (config-as-data, behavior-as-code)
+
+**Decision**: Consistent split for every agent layer across the portfolio.
+
+- **Shared (`bot-core` / `platform`)**: engine code, API clients, keys (env), and each subagent's role + high-level instructions as **shared prompt rows** (`prompts.project_id = NULL`). Loader already prefers a project-specific row and falls back to the shared default — mechanism exists, no change.
+- **Per-project DATA** (changeable without redeploy), seeded via `projects/[name]/*.sql`:
+  - `prompts.sql` — concrete prompts / per-project overrides (all layers)
+  - `personas.sql` — QA personas
+  - `support_knowledge.sql` — Support RAG FAQ
+  - **`project_config`** — new shared table (`project_id` PK, `config` jsonb), holds non-prompt calibration: marketing platform set + Buffer profile ids, support escalation thresholds, trial length, experiment toggles, etc.
+- **Per-project CODE** in `projects/[name]/business/*.ts`: created **only** where a layer needs product-specific behavior/logic (e.g., custom support tools like `extendTrial`). Layers that are pure data/config (marketing platform choice, experiment definitions) get **no** code adapter. Empty placeholder adapters are an anti-pattern (premature scaffolding).
+
+**Reasoning**: Industry standard — "configuration as data, behavior as code" + "shared defaults overridable per tenant" (how Langfuse/PromptLayer manage prompts, how PostHog separates SDK from per-project flags). The repo already implements the core (prompts NULL→shared / project_id→override; personas.sql; support_knowledge). The only gap was a consistent home for non-prompt calibration → `project_config`. Prevents each product reinventing its own structure; makes subagents portfolio-wide on the project side (Волна 3 covers the shared-engine side).
+
+**Alternatives considered**: One `business/*.ts` per layer per project always (rejected — empty adapters for data-only layers = premature scaffolding). Per-domain config tables instead of one `project_config` jsonb (rejected — premature; jsonb is flexible until a field proves it needs structure). Calibration in code constants (rejected — violates config-as-data; needs redeploy to change).
+
+**Revisit when**: a calibration field in `project_config` proves it needs its own typed table/columns (promote from jsonb then).
+
+---

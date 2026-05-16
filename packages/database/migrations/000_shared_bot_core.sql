@@ -113,6 +113,18 @@ CREATE INDEX IF NOT EXISTS idx_approval_queue_pending
 CREATE INDEX IF NOT EXISTS idx_approval_queue_project
   ON approval_queue(project_id, created_at DESC);
 
+-- ── Per-project calibration (non-prompt) ──────────────────────────────────────
+-- One row per project. Holds non-prompt calibration: marketing platform set +
+-- Buffer profile ids, support escalation thresholds, trial length, experiment
+-- toggles, etc. Prompts/personas/FAQ live in their own tables; this is the
+-- catch-all for tunable config. See DECISIONS.md 2026-05-16.
+CREATE TABLE IF NOT EXISTS project_config (
+  project_id text        PRIMARY KEY,
+  config     jsonb       NOT NULL DEFAULT '{}',
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
 -- ── Row Level Security (deny-by-default; service_role bypasses) ───────────────
 ALTER TABLE users            ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_identities  ENABLE ROW LEVEL SECURITY;
@@ -120,3 +132,4 @@ ALTER TABLE bot_sessions     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE portfolio_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE prompts          ENABLE ROW LEVEL SECURITY;
 ALTER TABLE approval_queue   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE project_config   ENABLE ROW LEVEL SECURITY;

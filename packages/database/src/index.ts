@@ -48,6 +48,19 @@ export interface DbSubscription {
   current_period_end: string | null
 }
 
+// project_config — one row per project, non-prompt calibration.
+// `config` is intentionally open (jsonb): marketing platform set + Buffer
+// profile ids, support escalation thresholds, trial length, experiment
+// toggles, etc. Narrow at the consumer when a field's shape stabilizes;
+// promote to its own column/table only when it proves it needs structure
+// (DECISIONS.md 2026-05-16).
+export interface DbProjectConfig {
+  project_id: string
+  config: Record<string, unknown>
+  created_at: string
+  updated_at: string
+}
+
 // ── Supabase client factory ────────────────────────────────────────────────────
 // Server-only: uses SERVICE_ROLE key, bypasses RLS. Never import in client code.
 
