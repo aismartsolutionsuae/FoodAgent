@@ -1,3 +1,9 @@
+# CONSTRAINT (DECISIONS.md 2026-05-16): this autonomous agent is PR-only —
+# it must propose changes via a branch + PR, never commit/push directly to
+# `main`. claude-code-action @beta operates on a PR branch by default; do not
+# add config that targets `main` directly. `main` is intentionally unprotected
+# (per-path enforcement is impossible natively), so this is a convention the
+# action's default branch/PR behaviour upholds — keep it that way.
 name: Claude Code Action
 
 on:
