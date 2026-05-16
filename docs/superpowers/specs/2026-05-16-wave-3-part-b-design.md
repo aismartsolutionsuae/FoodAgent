@@ -107,14 +107,25 @@ args), error-path = a plain throwing function (not a spy). Reference:
 
 ### Coverage targets (pure logic per layer)
 
-| Unit | What is tested (pure, no live network) |
+Tests cover **only logic that exists in the code today**. The AI resilience
+retry/fallback/degradation design (DECISIONS 2026-05-15) is **decided but not yet
+implemented** in `ai/router.ts` / `ai/index.ts` (verified 2026-05-16). It is
+explicitly **out of Part B scope** and tracked as a separate item (its own
+implement+test sub-stage/wave, decided with the founder) — not smuggled into a
+"tests" stage. 3.6 does not test non-existent code.
+
+| Unit | What is tested (pure, no live network) — exists today |
 |---|---|
-| AI engine | cost calc (extend existing `costs.test.ts` only if a gap), retry/fallback chain selection, degradation-matrix mapping (gpt-5.4 → mini, gpt-4o stays) |
-| Support | triage classification mapping, escalation-threshold decision, RAG context assembly (pure assembly only, not the live embedding call) |
-| Experiments | `getFlag` resolution logic (variant/default selection given a flag payload) |
-| QA | `judge()` verdict parsing (response → structured verdict), prompt-name resolution |
-| Marketing | audience resolution; the trial/paid path throws the actionable error (3.2 contract) |
-| Identity | `resolveUser` race: SELECT-miss → INSERT user+identity → on UNIQUE violation delete orphan user and re-resolve to the winner (DECISIONS 2026-05-16) |
+| AI engine | `getPrompt` shared↔project fallback (project row preferred, NULL row fallback); `ask()` `{{var}}` substitution; `judge()` JSON extraction from fenced/raw output incl. malformed→raw passthrough. Cost calc already covered by `costs.test.ts` (no new work). |
+| Support | `analyzeSentiment` parse + fallbacks already covered by `sentiment.test.ts` (no new work). Gap: none additional for Part B (middleware is grammy-bound, not pure). |
+| Experiments | `getFlag` resolution: returns flag value when present; returns `defaultValue` when undefined/null; returns `defaultValue` on client throw. `isEnabled` truthy mapping. |
+| QA | `judge()` wrapper already covered by `judge.test.ts` (no new work). |
+| Marketing | audience trial/paid throws actionable error + all→email-channel send already covered by `index.test.ts` (no new work). |
+| Identity | `resolveUser` race: SELECT-miss → INSERT user+identity → on UNIQUE violation delete orphan user and re-resolve to the winner (DECISIONS 2026-05-16). |
+
+Net new test files for 3.6: **experiments** + **identity** + **ai engine**
+(`getPrompt`/`ask`/`judge` pure parts). Support/QA/Marketing/costs are already
+covered — Part B does not duplicate them.
 
 External calls (OpenAI, Supabase, PostHog) are mocked via the injected-impl
 pattern — these are unit tests, not the smoke harness's live checks.
