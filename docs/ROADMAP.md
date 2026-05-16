@@ -25,7 +25,7 @@ part of the always-read-first protocol.
 State at the start of Wave 3. Findings drive the Wave 3 sub-stages.
 
 - **AI engine** ✅ correct (`ask/judge/stream`, prompt cache, shared/project prompt fallback, Langfuse hooks, cost logging). Langfuse silently disabled — no `LANGFUSE_*` in env.
-- **Schema drift** 🔴 `subscriptions` table referenced in `marketing/index.ts`, `transport/telegram.ts`, `payments/index.ts` but **defined in no migration** (DECISIONS 2026-05-16 removed it as a principle; code never cleaned). `marketing/index.ts:112` selects `users.telegram_id` as email — pre-omnichannel schema.
+- **Schema drift** 🔴 `marketing/index.ts:112` selects `users.telegram_id` as email and filters by the absent `subscriptions` table (pre-omnichannel; **real drift, in scope**). `transport/telegram.ts` + `payments/index.ts` also reference `subscriptions` but are **opt-in by design, NOT dead** (DECISIONS 2026-05-16: subscription-model products only) — out of scope, do not touch.
 - **Tests** 🔴 only `ai/costs.test.ts`. No tests for engine, `resolveUser` race, support middleware, or any of the 5 layers.
 - **env / SaaS** — core set (Supabase, OpenAI, Telegram, owner, cron) ✅. Missing entirely: `LANGFUSE_*`, `POSTHOG_*`, `BETTERSTACK_API_TOKEN`, `RESEND_API_KEY`, `ADMIN_BOT_TOKEN/WEBHOOK`.
 - **Shared instructions** — shared (`project_id=NULL`) prompts seeded only for marketing (`002_marketing_prompts.sql`). Support / QA / Experiments shared role-prompts missing.
@@ -36,9 +36,9 @@ State at the start of Wave 3. Findings drive the Wave 3 sub-stages.
 
 Each sub-stage = its own commit/PR (code → PR per convention; docs direct). Tick here on merge.
 
-- [ ] **3.1 Cleanup** (no external steps): physically delete `projects/food-agent/`; remove dead `subscriptions`/`telegram_id` queries in marketing/transport/payments to match DECISIONS 2026-05-16; drop `SCRAPER_*` + LemonSqueezy stub vars from `.env.local`.
-- [ ] **3.2 Schema alignment**: rework `marketing.publishEmailCampaign` onto `user_identities` (email channel), or honestly stub until product selected (audience filters depend on absent billing).
-- [ ] **3.3 Shared instructions**: seed shared (`project_id=NULL`) prompts for support / qa / experiments, mirroring `002_marketing_prompts.sql`.
+- [ ] **3.1 Cleanup** (no external steps): physically delete `projects/food-agent/`; drop `SCRAPER_*` + LemonSqueezy stub vars from `.env.local`. (transport/payments subscription code is opt-in by design — NOT touched.)
+- [ ] **3.2 Schema alignment** (marketing only): rework `marketing.publishEmailCampaign` onto `user_identities` email channel; `audience` trial/paid throws an actionable error (billing deferred until product, DECISIONS 2026-05-16).
+- [ ] **3.3 Prompt-table compliance**: support/qa currently bypass the `prompts` table (sentiment hardcoded + direct provider call; qa judge passes prompt text as prompt name → empty content). Refactor both to named shared prompts via `ask()`/`judge()` + seed migration `005_shared_agent_prompts.sql`. (Experiments has no AI calls — none needed.)
 - [ ] **3.4 SaaS wiring** ⚠️ requires founder portal/key steps: Langfuse, PostHog, BetterStack, Resend, admin-bot Telegram — one at a time, each with a smoke check.
 - [ ] **3.5 Smoke harness**: one stub check per layer (engine ping, support triage on fixture, experiments getFlag, qa judge, marketing dry-run) — runnable locally and in CI.
 - [ ] **3.6 Tests**: unit tests for each layer's pure logic + `resolveUser` race.
