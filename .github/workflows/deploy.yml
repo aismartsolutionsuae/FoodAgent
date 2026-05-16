@@ -35,3 +35,62 @@ jobs:
         with:
           railway_token: ${{ secrets.RAILWAY_TOKEN }}
           service: admin-bot
+
+# ── Per-product deploy template ───────────────────────────────────────────────
+# To onboard a product: copy the block below, replace [PRODUCT] with the
+# project folder name (e.g. noc-generator), add the matching GitHub secrets
+# (VERCEL_PROJECT_ID_[PRODUCT] etc.), uncomment. Drop the worker sub-job if the
+# product has no projects/[PRODUCT]/worker. When a 2nd product lands, refactor
+# this into a reusable workflow (workflow_call) instead of copy-paste.
+#
+#  deploy-[PRODUCT]:
+#    name: Deploy [PRODUCT] → Vercel
+#    runs-on: ubuntu-latest
+#    if: |
+#      contains(toJson(github.event.commits.*.modified), 'projects/[PRODUCT]') ||
+#      contains(toJson(github.event.commits.*.modified), 'packages/')
+#    steps:
+#      - uses: actions/checkout@v4
+#      - uses: pnpm/action-setup@v4
+#        with:
+#          version: 9
+#      - uses: actions/setup-node@v4
+#        with:
+#          node-version: 22
+#          cache: pnpm
+#      - run: pnpm install --frozen-lockfile
+#      - run: pnpm --filter @portfolio/[PRODUCT] build
+#        env:
+#          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+#          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+#          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+#      - uses: amondnet/vercel-action@v25
+#        with:
+#          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+#          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+#          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID_[PRODUCT] }}
+#          working-directory: projects/[PRODUCT]
+#          vercel-args: --prod
+#
+#  # Optional — only if projects/[PRODUCT]/worker exists:
+#  deploy-[PRODUCT]-worker:
+#    name: Deploy [PRODUCT] worker → Railway
+#    runs-on: ubuntu-latest
+#    if: |
+#      contains(toJson(github.event.commits.*.modified), 'projects/[PRODUCT]/worker') ||
+#      contains(toJson(github.event.commits.*.modified), 'packages/')
+#    steps:
+#      - uses: actions/checkout@v4
+#      - uses: pnpm/action-setup@v4
+#        with:
+#          version: 9
+#      - uses: actions/setup-node@v4
+#        with:
+#          node-version: 22
+#          cache: pnpm
+#      - run: pnpm install --frozen-lockfile
+#      - run: pnpm --filter @portfolio/[PRODUCT]-worker build
+#      - uses: bervProject/railway-deploy@v1
+#        with:
+#          railway_token: ${{ secrets.RAILWAY_TOKEN }}
+#          service: [PRODUCT]-worker
