@@ -1,0 +1,27 @@
+# Wave 3.5 smoke harness. workflow_dispatch ONLY — NOT on pull_request: the
+# harness makes live OpenAI calls; running it per PR would burn spend on every
+# change (cost-discipline, DECISIONS.md 2026-05-16). Founder triggers it
+# manually after wiring a SaaS layer (Wave 3.4) to confirm skip→ok flips.
+name: Smoke
+
+on:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @portfolio/bot-core smoke
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
