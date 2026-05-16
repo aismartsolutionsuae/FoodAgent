@@ -6,11 +6,7 @@ Append-only. Each entry: date, decision, reasoning, alternatives considered.
 
 ## 2026-05-11 — Repository renamed: FoodAgent → Portfolio
 
-**Decision**: Repository renamed from `FoodAgent` to `Portfolio` on GitHub. FoodAgent becomes one of many products in `projects/food-agent/`.
-
-**Reasoning**: Repository serves as infrastructure for multiple products, not a single product. Original naming was an artifact of starting with one product idea before pivoting to portfolio approach.
-
-**Alternatives considered**: Keeping FoodAgent name (rejected — misleading). Creating new repo from scratch (rejected — loses history and breaks references).
+Archived (historical, no live constraint). Full text → `docs/DECISIONS-archive.md`.
 
 ---
 
@@ -81,11 +77,7 @@ Anthropic API key is NOT required until a legal/long-context product is activate
 
 ## 2026-05-11 — Refund policy: manual approve only
 
-**Decision**: All refund requests go to `approval_queue` for founder review. No auto-refund logic, even for small amounts or within trial period.
-
-**Reasoning**: Auto-refunds create abuse vector and remove signal about why users churn. Manual review is fast (Telegram approval button) and preserves customer feedback loop.
-
-**Alternatives considered**: Auto-refund under $50 within 24h (rejected — risk outweighs convenience for solo founder).
+Superseded by 2026-05-15 (Refund policy decomposed). Full text → `docs/DECISIONS-archive.md`.
 
 ---
 
@@ -358,5 +350,17 @@ Auto-approve trigger MUST be system-detected, never user-claimed. A user merely 
 **Alternatives considered**: Atomic Postgres RPC now (deferred — premature at zero traffic; revisit under real concurrency). Ignore the race (rejected — duplicate users / orphan rows on concurrent first message). DB transaction wrapper (rejected — Supabase JS client has no ergonomic multi-statement tx; RPC would be the real fix).
 
 **Revisit when**: real concurrent load appears, or duplicate-user / orphan-row symptoms show in logs — promote to an atomic Postgres function then.
+
+---
+
+## 2026-05-16 — Context-overflow guard: session-boundary discipline + `/context` measurement
+
+**Decision**: Primary guard against context-window overflow is session-boundary discipline (operating rule in CLAUDE.md `Session efficiency`): at a logical milestone Claude prompts the user to check `/context` and offers a fresh session rather than extending a marathon. `/context` is the objective measurement (Claude has no precise live token visibility of its own); `/compact` is a lossy last-resort manual lever. No settings.json change — Claude Code exposes no numeric auto-compact threshold (verified). Reject flat self-policed "compact at 60%".
+
+**Reasoning**: 2026-05-16 ~11:38 a single ~4-hour session reached ~473K tokens vs Opus 4.7's 200K window; the next API request was rejected (the "crash"). Evidence: crashed transcript final usage `cache_read_input_tokens: 472499`. No work lost — overflow hit immediately after the final commit; git tree clean. Root cause is session length, not auto-loaded file size. A fresh session after a git milestone is zero-loss because state lives in git + STATUS/DECISIONS; mid-session compaction discards the reasoning thread. Operating rule lives in CLAUDE.md (executed every session); DECISIONS.md records rationale only (same split as 2026-05-15 working-protocol).
+
+**Alternatives considered**: Flat self-policed "compact at 60%" (rejected — Claude lacks precise live context %, unenforceable; 60% compaction is lossy and premature). Lower Claude Code auto-compact threshold (rejected — no such user-configurable numeric setting exists, verified via claude-code-guide). Larger / 1M context window (rejected — raises the ceiling, does not bound unbounded growth; added cost risk).
+
+**File hygiene (same session)**: 2 entries moved verbatim to `docs/DECISIONS-archive.md` — 2026-05-11 repo rename (historical) and 2026-05-11 refund manual-only (superseded by 2026-05-15). ~400 tokens off the every-session auto-load; minor vs the session-length root cause. Append-only spirit preserved: text unedited, pointer line retained in this log. Remaining entries are live constraints — kept.
 
 ---
