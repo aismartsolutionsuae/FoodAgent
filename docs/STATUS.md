@@ -7,6 +7,7 @@
 
 - **Infrastructure layer**: build out `packages/bot-core/*` modules per CLAUDE.md (5 agent layers).
 - **No product selected yet** for first MVP. Selection happens after infrastructure stabilizes.
+- **Wave tracking**: see `docs/ROADMAP.md` — currently Wave 3 (operability of all 5 shared layers). Product selection is Wave 4, blocked on Wave 3.
 
 ## Archived
 

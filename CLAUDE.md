@@ -6,6 +6,7 @@ Before doing ANYTHING, read in this order:
 1. This file (CLAUDE.md) — architecture and principles
 2. `docs/STATUS.md` — list of projects with correspondent status. The project here means coding of business logic but not the architecture or structure of the overall conveyor of projects.
 3. `docs/DECISIONS.md` — architecture decisions log
+4. `docs/ROADMAP.md` — Waves roadmap (what is built / what remains / in what order). Authoritative for "where are we"; keep current as waves progress.
 
 If `docs/STATUS.md` says a product is frozen, do NOT propose work on it, even if user asks for "next steps". Ask which non-frozen item to work on instead.
 
