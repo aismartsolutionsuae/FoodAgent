@@ -23,7 +23,7 @@ Schedule: every 7+ days, self-initiated by Claude Code at session start.
 ### Findings — repo structure issues
 1. **`subscriptions` table**: referenced generically by bot-core (transport, payments) but has NO shared migration (orphaned by food-agent removal). Decision needed Волна 2: add shared migration (likely — billing is shared infra) vs product-specific.
 2. **`bot-core/transport/telegram.ts`**: queries `users` by `telegram_id` — wrong vs new schema. Needs `resolveUser(channel, channelUserId, projectId)` helper. Волна 3.
-3. **`packages/bot-core/locales/`**: referenced by `i18n/index.ts` but does not exist. Волна 2.
+3. **`packages/bot-core/locales/`**: referenced by `i18n/index.ts` but does not exist. Волна 2. **[Corrected 2026-05-16: factually wrong — the dir and ru/en/ar .ftl files DID exist since 2026-04-29. Real issue was only the unwired loader (dead `botCoreLocalesDir` var). Fixed in Волна 2: loader rewritten to merge base+project; decided refund/voice keys added to existing files.]**
 4. **`projects/_template/`**: raw/incomplete. Project template to be rebuilt on a real test product, not reused as-is.
 5. **Improvement**: with food-agent removed, no product code does direct OpenAI SDK calls — `ask()`/`judge()`-only principle now clean across the tree.
 

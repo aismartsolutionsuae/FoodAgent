@@ -15,6 +15,10 @@ If `docs/STATUS.md` says a product is frozen, do NOT propose work on it, even if
 
 - Default conversation language: **Russian**. Code, file names, technical terms, library names, error messages — English.
 
+### Explanation style — functional-first
+
+Explain in functional, plain language by default: lead with **what it does** and **why it matters** in everyday terms. The user reads medium technical jargon fine but processes functional framing far more easily. Drop into technical detail (APIs, types, syntax, library internals) only when the task genuinely requires it or the user asks. Prefer "what & why" over "how"; reach for "how" only when how is the point. When a topic seems unclear to the user, re-explain plainly before adding any jargon.
+
 ### Roles
 
 - **User** is the ideator and orchestrator. User makes product, strategic, and prioritization decisions.
