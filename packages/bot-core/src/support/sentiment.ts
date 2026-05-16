@@ -1,20 +1,11 @@
-import { getProvider } from '../ai/router'
+import { ask } from '../ai/index'
 import type { SentimentResult } from './types'
 
-const PROMPT = `Classify the sentiment of the following user message.
-Reply with ONLY a JSON object in this exact format:
-{"sentiment":"positive"|"neutral"|"negative","score":0.0-1.0,"reason":"one short sentence"}
-
-User message: {{message}}`
-
+// Prompt lives in Supabase as shared row 'support:sentiment'
+// (migrations/005_shared_agent_prompts.sql). Model: gpt-4o-mini.
 export async function analyzeSentiment(message: string): Promise<SentimentResult> {
   try {
-    const provider = getProvider('openai')
-    const raw = await provider.complete(
-      [{ role: 'user', content: PROMPT.replace('{{message}}', message) }],
-      'gpt-4o-mini',
-      0,
-    )
+    const raw = await ask('support:sentiment', { message })
 
     const match = raw.match(/\{[\s\S]*\}/)
     if (!match) return { sentiment: 'neutral', score: 0.5, reason: 'parse error' }
