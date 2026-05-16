@@ -10,6 +10,8 @@ Before doing ANYTHING, read in this order:
 
 If `docs/STATUS.md` says a product is frozen, do NOT propose work on it, even if user asks for "next steps". Ask which non-frozen item to work on instead.
 
+**Skill-relevance check (mandatory).** Before any non-trivial task (anything past a one-line typo/rename), check whether an available skill applies and invoke it before acting — process skills (brainstorming, debugging, planning) before implementation skills. Announce `Using <skill> to <purpose>`. Pure documentation/governance edits do not require process skills. This is read by both the interactive harness and the autonomous Layer-4 coder; full autonomous parity additionally needs the skills plugin in the action environment (open question, validated in Wave 3.5).
+
 ## Communication conventions
 
 ### Language
