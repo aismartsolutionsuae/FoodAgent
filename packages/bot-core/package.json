@@ -9,6 +9,7 @@
   },
   "exports": {
     "./transport/telegram": "./src/transport/telegram.ts",
+    "./identity": "./src/identity/index.ts",
     "./session": "./src/session/index.ts",
     "./i18n": "./src/i18n/index.ts",
     "./ai": "./src/ai/index.ts",

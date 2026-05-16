@@ -2,8 +2,9 @@ import { createBot, createSubscriptionMiddleware } from '@portfolio/bot-core/tra
 import { InlineKeyboard } from 'grammy'
 
 if (!process.env.BOT_TOKEN) throw new Error('BOT_TOKEN is not set')
+if (!process.env.PROJECT_ID) throw new Error('PROJECT_ID is not set')
 
-export const bot = createBot(process.env.BOT_TOKEN)
+export const bot = createBot(process.env.BOT_TOKEN, process.env.PROJECT_ID)
 
 // ── Free commands (no subscription check) ────────────────────────────────────
 
@@ -18,7 +19,7 @@ bot.command('help', async (ctx) => {
 // ── Subscription gate ─────────────────────────────────────────────────────────
 
 bot.use(createSubscriptionMiddleware(async (ctx) => {
-  const checkoutUrl = `${process.env.LEMONSQUEEZY_CHECKOUT_URL ?? '#'}?checkout[custom][telegram_id]=${ctx.dbUser!.telegram_id}`
+  const checkoutUrl = `${process.env.LEMONSQUEEZY_CHECKOUT_URL ?? '#'}?checkout[custom][telegram_id]=${ctx.from?.id}`
   await ctx.reply('Your trial has expired. Subscribe to continue:', {
     reply_markup: new InlineKeyboard().url('Subscribe', checkoutUrl),
   })
