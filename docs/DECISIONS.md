@@ -382,3 +382,15 @@ Auto-approve trigger MUST be system-detected, never user-claimed. A user merely 
 **Revisit when**: first product ships (real deploy targets → CI failures carry production risk → revisit enforced protection + admin-bot routing); or autonomous `claude-code-action` usage grows materially.
 
 ---
+
+## 2026-05-17 — AI resilience (retry+fallback) implementation deferred, tracked as its own track
+
+**Decision**: The AI call resilience design (retry 2× + degradation fallback, decided 2026-05-15) is **decided but not implemented** in `ai/router.ts` / `ai/index.ts` — verified 2026-05-17 during Wave 3 Part B planning (`ask/judge/stream` call the provider once, no retry, no degradation). It is **explicitly excluded from Wave 3** (smoke/tests) and tracked as its own implement+test track, scheduled with the founder separately — NOT smuggled into the 3.6 "tests" sub-stage (testing non-existent code is forbidden). Wave 3 closes without it.
+
+**Reasoning**: The Wave 3 audit (ROADMAP snapshot 2026-05-16) marked the AI engine "✅ correct" and did not catch that a separately-decided resilience behavior was never coded. Mixing a feature implementation into a test sub-stage would violate TDD scope discipline and inflate Part B beyond its approved spec. Recording here (an always-read-first source) prevents the gap from being forgotten — spec/ROADMAP evidence alone is not in the every-session read set.
+
+**Alternatives considered**: Expand Wave 3 Part B to implement resilience then test it (rejected — scope creep beyond approved spec; conflates feature work with a tests stage). Leave the gap only in spec §3.6 + ROADMAP evidence (rejected — neither is always-read-first; high risk of silent loss across sessions). Drop the 2026-05-15 resilience decision (rejected — the resilience rationale still holds; only its sequencing changed).
+
+**Revisit when**: scheduled as its own track before the first product handles real user traffic (provider 5xx/429 on a live product is when the missing retry/fallback actually bites); or sooner if Langfuse shows provider-failure incidents once 3.4 wires observability.
+
+---
