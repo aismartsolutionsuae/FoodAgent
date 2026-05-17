@@ -31,7 +31,7 @@ import { getPrompt, ask, judge } from './index'
 beforeEach(() => {
   fromMock.mockClear()
   promptRow = null
-  completeImpl = vi.fn(async (msgs: { content: string }[]) => msgs[0].content)
+  completeImpl = vi.fn(async (...a: unknown[]) => (a[0] as { content: string }[])[0].content)
   delete process.env.LANGFUSE_SECRET_KEY
   delete process.env.LANGFUSE_PUBLIC_KEY
 })
